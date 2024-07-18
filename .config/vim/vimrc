@@ -1,1 +1,76 @@
-sdfasdf
+" Setup plugin manager
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+call plug#begin()
+
+" List your plugins here
+Plug 'rose-pine/vim'
+
+call plug#end()
+
+# Set theme
+set background=dark
+colorscheme rosepine
+
+" Set line numbers
+set number
+
+" Set relative line numbers
+set relativenumber
+
+" Set tab width and indentation
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+
+" Disable line wrapping
+set nowrap
+
+" Disable swap file
+set noswapfile
+
+" Disable backup
+set nobackup
+
+" Set undo directory and enable undo file
+if has("persistent_undo")
+    let &undodir = expand("~/.vim/undodir")
+    set undofile
+endif
+
+" Disable highlight search
+set nohlsearch
+
+" Enable incremental search
+set incsearch
+
+" Enable 24-bit RGB color in the terminal UI
+if has("termguicolors")
+    set termguicolors
+endif
+
+" Set the number of lines to keep above and below the cursor
+set scrolloff=8
+
+" Always show the sign column
+set signcolumn=yes
+
+" Append '@-@' to 'isfname' option
+set isfname+=@-@
+
+" Set the update time
+set updatetime=50
+
+" Highlight the 80th column
+set colorcolumn=80
+
+" Source additional configuration files
+
+source $XDG_CONFIG_HOME/vim/keybindings.vim
+" source ~/.vim/plugins.vim
+
