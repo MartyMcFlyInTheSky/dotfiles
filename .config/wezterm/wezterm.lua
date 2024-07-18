@@ -3,6 +3,7 @@ local act = wezterm.action
 local config = {}
 
 
+config.leader = { key = 'a', mods = 'CTRL' }
 config.keys = {
   -- {
   --   key = 'd',
@@ -11,50 +12,17 @@ config.keys = {
   -- },
   {
     key = 'r',
-    mods = 'CMD|SHIFT',
+    mods = 'LEADER',
     action = act.ReloadConfiguration,
   },
-  -- This will create a new split and run your default program inside it
-  {
-    key = '"',
-    mods = 'CTRL|SHIFT|ALT',
-    action = act.SplitVertical { domain = 'CurrentPaneDomain' },
-  },
-  {
-    key = '%',
-    mods = 'CTRL|SHIFT|ALT',
-    action = act.SplitHorizontal { domain = 'CurrentPaneDomain' },
-  },
-  -- {
-  --   key = 'h',
-  --   mods = 'CTRL',
-  --   action = act.ActivatePaneDirection 'Left',
-  -- },
-  -- {
-  --   key = 'l',
-  --   mods = 'CTRL',
-  --   action = act.ActivatePaneDirection 'Right',
-  -- },
-  -- {
-	 --  key = 'b',
-	 --  mods = 'CTRL',
-	 --  action = wezterm.action {
-		--   SendKey = {
-		-- 	  key = 'l',
-		-- 	  mods = 'CTRL'
-		--   }
-	 --  }
-  -- }
-  -- {
-  --   key = 'k',
-  --   mods = 'CTRL',
-  --   action = act.ActivatePaneDirection 'Up',
-  -- },
-  -- {
-  --   key = 'j',
-  --   mods = 'CTRL',
-  --   action = act.ActivatePaneDirection 'Down',
-  -- },
+  -- Define custom keybindings here, using the leader key
+  { key = 'c', mods = 'LEADER', action = wezterm.action{SpawnTab = 'CurrentPaneDomain'} },
+  { key = 'v', mods = 'LEADER', action = wezterm.action{SplitHorizontal = {domain = 'CurrentPaneDomain'}} },
+  { key = 's', mods = 'LEADER', action = wezterm.action{SplitVertical = {domain = 'CurrentPaneDomain'}} },
+  { key = 'h', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Left'} },
+  { key = 'j', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Down'} },
+  { key = 'k', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Up'} },
+  { key = 'l', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Right'} },
 }
 
 -- config.color_scheme = 'Dracula'
