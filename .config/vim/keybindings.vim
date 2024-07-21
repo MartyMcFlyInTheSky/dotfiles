@@ -1,5 +1,3 @@
-echo "Setting leader key"
-
 " Set the leader key
 let mapleader=" "
 

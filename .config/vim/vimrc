@@ -1,20 +1,39 @@
-" Setup plugin manager
-let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
-if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+
+" Define the custom directory structure using expand() to correctly interpret environment variables
+let data_path = expand('$XDG_DATA_HOME') . '/share/vim'
+let config_path = expand('$XDG_CONFIG_HOME') . '/vim'
+let cache_path = expand('$XDG_CACHE_HOME') . '/vim'
+
+" Set runtimepath to include the config_path and config_path/after
+execute "set runtimepath^=" . config_path . "," . config_path . "/after," . data_path
+
+" Set the directory for swap files
+execute "set dir=" . data_path
+
+" Set viminfo file location
+execute "set viminfo+=n" . cache_path . "/viminfo"
+
+" Set undo directory and enable undo file
+if has("persistent_undo")
+    let &undodir=data_path . '/undodir'
+    set undofile
 endif
 
-call plug#begin()
+" Install plugins if not already installed
+if !isdirectory(data_path . '/plugged')
+    autocmd VimEnter * PlugInstall --sync
+endif
 
+" Initialize VimPlug with the custom directory
+call plug#begin(data_path . '/plugged')
 " List your plugins here
 Plug 'rose-pine/vim'
 
 call plug#end()
 
-# Set theme
+" Set theme if installed
 set background=dark
-colorscheme rosepine
+silent! colorscheme rosepine
 
 " Set line numbers
 set number
@@ -37,11 +56,6 @@ set noswapfile
 " Disable backup
 set nobackup
 
-" Set undo directory and enable undo file
-if has("persistent_undo")
-    let &undodir = expand("~/.vim/undodir")
-    set undofile
-endif
 
 " Disable highlight search
 set nohlsearch
@@ -71,6 +85,5 @@ set colorcolumn=80
 
 " Source additional configuration files
 
-source $XDG_CONFIG_HOME/vim/keybindings.vim
-" source ~/.vim/plugins.vim
+execute 'source ' . config_path . '/keybindings.vim'
 
