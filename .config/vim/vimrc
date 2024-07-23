@@ -1,17 +1,18 @@
 
 " Define the custom directory structure using expand() to correctly interpret environment variables
-let data_path = expand('$XDG_DATA_HOME') . '/share/vim'
+let data_path = expand('$XDG_DATA_HOME') . '/vim'
 let config_path = expand('$XDG_CONFIG_HOME') . '/vim'
 let cache_path = expand('$XDG_CACHE_HOME') . '/vim'
+let state_path = expand('$XDG_STATE_HOME') . '/vim'
 
 " Set runtimepath to include the config_path and config_path/after
-execute "set runtimepath^=" . config_path . "," . config_path . "/after," . data_path
+execute 'set runtimepath+=' . config_path . ',' . config_path . '/after,' . data_path
 
 " Set the directory for swap files
-execute "set dir=" . data_path
+execute 'set dir=' . data_path
 
 " Set viminfo file location
-execute "set viminfo+=n" . cache_path . "/viminfo"
+execute "set viminfo='1000,n" . state_path . "/viminfo"
 
 " Set undo directory and enable undo file
 if has("persistent_undo")

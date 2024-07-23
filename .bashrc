@@ -13,8 +13,9 @@ SCRIPT_PATH=$(dirname $(realpath -s "$BASH_SOURCE[0]"))
 MY_HOME="$SCRIPT_PATH"
 echo ".bashrc: setting xdg home to ${MY_HOME}"
 export XDG_CONFIG_HOME=$MY_HOME/.config
-export XDG_DATA_HOME=$MY_HOME/.local
+export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
+export XDG_STATE_HOME=$MY_HOME/.local/state
 
 # don't put duplicate lines or lines starting with space in the history.  # See bash(1) for more options
 HISTCONTROL=ignoreboth
