@@ -3,27 +3,41 @@ local act = wezterm.action
 local config = {}
 
 
-config.leader = { key = 'a', mods = 'CTRL' }
-config.keys = {
-  -- {
-  --   key = 'd',
-  --   mods = 'CTRL',
-  --   action = act.CloseCurrentPane { confirm = true },
-  -- },
-  {
-    key = 'r',
-    mods = 'LEADER',
-    action = act.ReloadConfiguration,
-  },
-  -- Define custom keybindings here, using the leader key
-  { key = 'c', mods = 'LEADER', action = wezterm.action{SpawnTab = 'CurrentPaneDomain'} },
-  { key = 'v', mods = 'LEADER', action = wezterm.action{SplitHorizontal = {domain = 'CurrentPaneDomain'}} },
-  { key = 's', mods = 'LEADER', action = wezterm.action{SplitVertical = {domain = 'CurrentPaneDomain'}} },
-  { key = 'h', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Left'} },
-  { key = 'j', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Down'} },
-  { key = 'k', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Up'} },
-  { key = 'l', mods = 'LEADER', action = wezterm.action{ActivatePaneDirection = 'Right'} },
+config.leader = { 
+    key = 'a', 
+    mods = 'CTRL' 
 }
+
+-- Helper function to change pane or create a new one
+local function change_or_create_pane(direction)
+  return function(window, pane)
+    local result = pane:send_pane_select_by_direction(direction)
+    if not result then
+      -- If changing pane fails, create a new one in the specified direction
+      if direction == "Left" then
+        window:perform_action(wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
+      elseif direction == "Right" then
+        window:perform_action(wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
+      elseif direction == "Up" then
+        window:perform_action(wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+      elseif direction == "Down" then
+        window:perform_action(wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+      end
+    end
+  end
+end
+
+-- Configure keybindings
+local config = {
+  keys = {
+    -- Change pane or create a new one with Ctrl+h/j/k/l
+    { key = "h", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Left")) },
+    { key = "j", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Down")) },
+    { key = "k", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Up")) },
+    { key = "l", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Right")) },
+  }
+}
+
 
 -- config.color_scheme = 'Dracula'
 config.colors = {

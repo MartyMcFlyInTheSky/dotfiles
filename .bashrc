@@ -114,7 +114,13 @@ export SYSTEMD_EDITOR=vim
 alias vim="vim -Nu $XDG_CONFIG_HOME/vim/vimrc"
 
 # Make some adaptions based on whether we're on remote or not 
-if [[ "$MY_HOME" != $HOME ]]; then
+if [ -n "$SSH_CONNECTION" ]; then
+    echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
+    
+    if [ -f "$HOME/.bash_profile" ]; then
+        . "$HOME/.bash_profile"
+    fi
+
     # Some applications do not follow xdg standard,
     # for these we need to manually urge them to use
     # the corresponding config files
