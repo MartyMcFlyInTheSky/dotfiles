@@ -12,7 +12,7 @@ esac
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 SCRIPT_PATH=$(dirname $(realpath -s "$BASH_SOURCE[0]"))
 MY_HOME="$SCRIPT_PATH"
-echo ".bashrc: setting xdg home to ${MY_HOME}"
+echo "Proprietary .bashrc: Setting xdg home to ${MY_HOME}"
 export XDG_CONFIG_HOME=$MY_HOME/.config
 export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
@@ -105,8 +105,8 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Extend paths for tools
-export PATH=$MY_HOME/.local/scripts/:$PATH
+# Extend paths for scripts and binaries
+export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
 bind -x '"\C-f": "tmux-sessionizer.sh"'
 
 export SYSTEMD_EDITOR=vim
