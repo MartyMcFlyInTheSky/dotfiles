@@ -31,3 +31,4 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 alias rgf='rg --files | rg'
 alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
 alias cdf='cd $(find . -type d -print | fzf)'
+alias pg='ps aux | grep'
