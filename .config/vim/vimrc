@@ -1,32 +1,28 @@
-
-" Define the custom directory structure using expand() to correctly interpret environment variables
-let data_path = expand('$XDG_DATA_HOME') . '/vim'
-let config_path = expand('$XDG_CONFIG_HOME') . '/vim'
-let cache_path = expand('$XDG_CACHE_HOME') . '/vim'
-let state_path = expand('$XDG_STATE_HOME') . '/vim'
-
 " Set runtimepath to include the config_path and config_path/after
-execute 'set runtimepath+=' . config_path . ',' . config_path . '/after,' . data_path
-
+set runtimepath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
 " Set the directory for swap files
-execute 'set dir=' . data_path
+set dir=$XDG_DATA_HOME/vim
 
 " Set viminfo file location
-execute "set viminfo='1000,n" . state_path . "/viminfo"
+set viminfo='1000,n$XDG_STATE_HOME/vim/viminfo
+
+" Place .netrwhist in correct folder
+let g:netrw_home=$XDG_CACHE_HOME . '/vim'
 
 " Set undo directory and enable undo file
 if has("persistent_undo")
-    let &undodir=data_path . '/undodir'
+    let &undodir='$XDG_DATA_HOME/vim/undodir'
     set undofile
 endif
 
 " Install plugins if not already installed
-if !isdirectory(data_path . '/plugged')
+let plugin_dir = expand($XDG_DATA_HOME) . '/vim/plugged'
+if !isdirectory(plugin_dir)
     autocmd VimEnter * PlugInstall --sync
 endif
 
 " Initialize VimPlug with the custom directory
-call plug#begin(data_path . '/plugged')
+call plug#begin(plugin_dir)
 " List your plugins here
 Plug 'rose-pine/vim'
 
@@ -47,6 +43,9 @@ set tabstop=4
 set softtabstop=4
 set shiftwidth=4
 set expandtab
+
+" allow more flexible backspacing
+set backspace=indent,eol,start
 
 " Disable line wrapping
 set nowrap
@@ -86,5 +85,5 @@ set colorcolumn=80
 
 " Source additional configuration files
 
-execute 'source ' . config_path . '/keybindings.vim'
+source $XDG_CONFIG_HOME/vim/keybindings.vim
 

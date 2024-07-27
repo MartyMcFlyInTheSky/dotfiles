@@ -1,7 +1,11 @@
 " Set the leader key
 let mapleader=" "
 
-nnoremap <leader>pv :Ex<CR> map [[ ?{<CR>w99[{ map ][ /}<CR>b99]}
+nnoremap <leader>pv :Ex<CR>
+
+" Find also {} on function header lines
+map [[ ?{<CR>w99[{
+map ][ /}<CR>b99]}
 map ]] j0[[%/{<CR>
 map [] k$][%?}<CR>
 

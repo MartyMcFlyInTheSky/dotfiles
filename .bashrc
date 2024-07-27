@@ -7,6 +7,7 @@ case $- in *i*) ;;
       *) return;;
 esac
 
+
 # Follow xdg standard paths
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 SCRIPT_PATH=$(dirname $(realpath -s "$BASH_SOURCE[0]"))
