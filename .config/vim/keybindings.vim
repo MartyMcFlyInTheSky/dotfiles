@@ -10,12 +10,12 @@ map ]] j0[[%/{<CR>
 map [] k$][%?}<CR>
 
 " Move current line or selected block of lines up
-vnoremap <M-k> mz:m '<-2<CR>gv=gv`z
-nnoremap <M-k> mz:m .-2<CR>`z
+vnoremap <ESC>k mz:m '<-2<CR>gv=gv`z
+nnoremap <ESC>k mz:m .-2<CR>`z
 
 " Move current line or selected block of lines down
-vnoremap <M-j> mz:m '>+1<CR>gv=gv`z
-nnoremap <M-j> mz:m .+1<CR>`z
+vnoremap <ESC>j mz:m '>+1<CR>gv=gv`z
+nnoremap <ESC>j mz:m .+1<CR>`z
 
 " Copy current selection up or down
 nnoremap <ESC>K :t .-1<CR>==
