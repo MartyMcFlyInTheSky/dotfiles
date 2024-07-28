@@ -23,6 +23,12 @@ nnoremap <ESC>J :t .<CR>==
 xnoremap <Esc>K :t '<-1<CR>V'[
 xnoremap <ESC>J :t '><CR>V'[
 
+" Remap <C-i> which is Tab to cycle through buffer
+nnoremap <C-n> <TAB>
+nnoremap <TAB> :bnext<CR>
+nnoremap <C-TAB> :bprev<CR>
+
+
 " Move to the next line and join lines, keeping cursor position
 nnoremap J mzJ`z
 
