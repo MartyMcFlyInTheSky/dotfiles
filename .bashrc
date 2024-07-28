@@ -11,7 +11,7 @@ esac
 # Follow xdg standard paths
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 SCRIPT_PATH=$(dirname $(realpath -s "$BASH_SOURCE[0]"))
-MY_HOME="$SCRIPT_PATH"
+export MY_HOME="$SCRIPT_PATH"
 echo "Proprietary .bashrc: Setting xdg home to ${MY_HOME}"
 export XDG_CONFIG_HOME=$MY_HOME/.config
 export XDG_DATA_HOME=$MY_HOME/.local/share
@@ -111,16 +111,38 @@ bind -x '"\C-f": "tmux-sessionizer.sh"'
 
 export SYSTEMD_EDITOR=vim
 
-
+# Use vim with a special config file
 alias vim="vim -Nu $XDG_CONFIG_HOME/vim/vimrc"
+
+# Use tmux with custom config file and socket
+alias tmux="tmux -f $XDG_CONFIG_HOME/tmux/tmux.conf -L sbeer"
+
+
+bash_login()
+{
+    # Define an array of the files to check
+    files=(~/.bash_profile ~/.bash_login ~/.profile)
+
+    # Loop through each file in the array
+    for file in "${files[@]}"; do
+      # Check if the file exists
+      if [ -f "$file" ]; then
+        # Source the file and print a message indicating which file was sourced
+        source "$file"
+        echo "Sourced: $file"
+        # Exit the loop after sourcing the first existing file
+        break
+      fi
+    done
+}
+
 
 # Make some adaptions based on whether we're on remote or not 
 if [ -n "$SSH_CONNECTION" ]; then
     echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
     
-    if [ -f "$HOME/.bash_profile" ]; then
-        . "$HOME/.bash_profile"
-    fi
+    # Recreate bash login behaviour (https://github.com/rbenv/rbenv/wiki/Unix-shell-initialization#bash)
+    bash_login 
 
     # Some applications do not follow xdg standard,
     # for these we need to manually urge them to use

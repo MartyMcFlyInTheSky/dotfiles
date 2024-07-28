@@ -56,12 +56,6 @@ nnoremap Q <nop>
 " Open a new tmux window and run tmux-sessionizer.sh
 nnoremap <C-f> :silent !tmux neww tmux-sessionizer.sh<CR>
 
-" Navigate to the next quickfix list entry and center screen
-nnoremap <C-k> :cnext<CR>zz
-
-" Navigate to the previous quickfix list entry and center screen
-nnoremap <C-j> :cprev<CR>zz
-
 " Navigate to the next location list entry and center screen
 nnoremap <leader>k :lnext<CR>zz
 

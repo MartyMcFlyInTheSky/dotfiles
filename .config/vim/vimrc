@@ -1,5 +1,7 @@
 " Set runtimepath to include the config_path and config_path/after
 set runtimepath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+set packpath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+
 " Set the directory for swap files
 set dir=$XDG_DATA_HOME/vim
 

@@ -8,6 +8,7 @@ config.leader = {
     mods = 'CTRL' 
 }
 
+
 -- Helper function to change pane or create a new one
 local function change_or_create_pane(direction)
   return function(window, pane)
@@ -29,14 +30,16 @@ end
 
 -- Configure keybindings
 local config = {
-  keys = {
-    -- Change pane or create a new one with Ctrl+h/j/k/l
-    { key = "h", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Left")) },
-    { key = "j", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Down")) },
-    { key = "k", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Up")) },
-    { key = "l", mods = "CTRL", action = wezterm.action_callback(change_or_create_pane("Right")) },
-  }
 }
+
+config.keys = {
+    {
+        key = 'l',
+        mods = 'CTRL|SHIFT',
+        action = wezterm.action.DisableDefaultAssignment,
+    }
+}
+
 
 
 -- config.color_scheme = 'Dracula'
