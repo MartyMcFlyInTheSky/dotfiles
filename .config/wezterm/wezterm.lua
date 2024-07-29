@@ -5,6 +5,20 @@ local config = {}
 -- Disable wezterm keyinbings as we use tmux as our main multiplexer
 config.disable_default_key_bindings = true
 
+-- Some we still need
+config.keys = {
+    {
+        key = "c",
+        mods = "CTRL|SHIFT",
+        action = act.CopyTo "Clipboard",
+    },
+    {
+        key = "v",
+        mods = "CTRL|SHIFT",
+        action = act.PasteFrom "Clipboard",
+    },
+}
+
 -- config.color_scheme = 'Dracula'
 config.colors = {
     foreground = "#d4d4d4",  -- editor.foreground in VS Code

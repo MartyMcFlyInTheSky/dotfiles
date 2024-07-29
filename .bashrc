@@ -94,6 +94,10 @@ if [ -f "$MY_HOME/.bash_aliases" ]; then
     . "$MY_HOME/.bash_aliases"
 fi
 
+if [ -f "$MY_HOME/.bash_functions" ]; then
+    . "$MY_HOME/.bash_functions"
+fi
+
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
@@ -109,32 +113,10 @@ fi
 export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
 bind -x '"\C-f": "tmux-sessionizer.sh"'
 
+# Install zoxide
+eval "$(zoxide init bash)"
+
 export SYSTEMD_EDITOR=vim
-
-# Use vim with a special config file
-alias vim="vim -Nu $XDG_CONFIG_HOME/vim/vimrc"
-
-# Use tmux with custom config file and socket
-alias tmux="tmux -f $XDG_CONFIG_HOME/tmux/tmux.conf -L sbeer"
-
-
-bash_login()
-{
-    # Define an array of the files to check
-    files=(~/.bash_profile ~/.bash_login ~/.profile)
-
-    # Loop through each file in the array
-    for file in "${files[@]}"; do
-      # Check if the file exists
-      if [ -f "$file" ]; then
-        # Source the file and print a message indicating which file was sourced
-        source "$file"
-        echo "Sourced: $file"
-        # Exit the loop after sourcing the first existing file
-        break
-      fi
-    done
-}
 
 
 # Make some adaptions based on whether we're on remote or not 
