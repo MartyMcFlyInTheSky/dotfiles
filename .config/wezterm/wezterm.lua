@@ -17,6 +17,11 @@ config.keys = {
         mods = "CTRL|SHIFT",
         action = act.PasteFrom "Clipboard",
     },
+    {
+        key="-",
+        mods="CTRL",
+        action=wezterm.action.SendString("cd ..\n"),
+    },
 }
 
 -- config.color_scheme = 'Dracula'
