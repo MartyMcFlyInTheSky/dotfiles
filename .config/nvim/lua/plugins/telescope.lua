@@ -8,12 +8,23 @@ return {
     },
 
     config = function()
-        require('telescope').setup({})
+        local actions = require("telescope.actions")
+        require('telescope').setup({
+            defaults = {
+                mappings = {
+                    i = {
+                        ["<esc>"] = actions.close,
+                    },
+                },
+            },
+        })
 
         local builtin = require('telescope.builtin')
         vim.keymap.set('n', '<leader>pf', builtin.find_files, {})
         vim.keymap.set('n', '<leader>fg', builtin.live_grep, { noremap = true, silent = true })
         vim.keymap.set('n', '<C-p>', builtin.git_files, {})
+        vim.keymap.set('n', '<leader>fn', builtin.lsp_document_symbols, {})
+        vim.keymap.set('n', '<leader>of', builtin.oldfiles, {})
         vim.keymap.set('n', '<leader>pws', function()
             local word = vim.fn.expand("<cword>")
             builtin.grep_string({ search = word })
