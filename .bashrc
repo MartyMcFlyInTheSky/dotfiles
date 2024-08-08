@@ -86,17 +86,6 @@ esac
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 
-# Alias definitions.
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-if [ -f "$MY_HOME/.bash_aliases" ]; then
-    . "$MY_HOME/.bash_aliases"
-fi
-
-if [ -f "$MY_HOME/.bash_functions" ]; then
-    . "$MY_HOME/.bash_functions"
-fi
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -107,6 +96,26 @@ if ! shopt -oq posix; then
   elif [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
   fi
+fi
+
+# Alias definitions.
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f "$MY_HOME/.bash_aliases" ]; then
+    . "$MY_HOME/.bash_aliases"
+fi
+
+if [ -f "$MY_HOME/.bash_functions.sh" ]; then
+    . "$MY_HOME/.bash_functions.sh"
+fi
+
+if [ -f "$MY_HOME/.bash_keybindings.sh" ]; then
+    . "$MY_HOME/.bash_keybindings.sh"
+fi
+
+if [ -f "$MY_HOME/.bash_completions.sh" ]; then
+    . "$MY_HOME/.bash_completions.sh"
 fi
 
 # Extend paths for scripts and binaries
