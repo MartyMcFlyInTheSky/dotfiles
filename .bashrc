@@ -111,7 +111,7 @@ fi
 
 # Extend paths for scripts and binaries
 export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
-bind -x '"\C-f": "tmux-sessionizer.sh"'
+
 
 # Install zoxide
 eval "$(zoxide init bash)"
