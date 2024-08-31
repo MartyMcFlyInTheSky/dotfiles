@@ -1,0 +1,102 @@
+;; ./vpns/vpns.yuck
+
+
+
+(defvar jvar_vpns '[]')
+(defvar jvar_vpn_selection '{}')
+
+
+(defwidget vpn_entry [name onclick selected error active inprogress]
+    (button
+        :class { selected? 'netw-button-selected' : 'netw-button' }
+        :onclick onclick
+        (centerbox
+            :space-evenly false
+            (label :text name)
+            (label :text '')
+            (box
+                :space-evenly false
+                :halign 'end'
+                (label :visible { error } :text '' :class 'icon' :style 'color: orange;')
+                (label :visible { active } :text '' :class 'icon')
+            )
+        )
+    )
+)
+
+
+(defvar var_vpn_script_exec '')
+(defpoll var_spinner
+    :interval '50ms'
+    :run-while var_vpn_script_exec 
+    `python common/spin.py`)
+
+
+(defwidget vpn_control [name onclick ?active_when]
+    (eventbox
+        :cursor { active_when?: true ? 'pointer' : 'default'}
+        :class 'vpn_control'
+        (button
+            :active { active_when?: true }
+            :onclick onclick
+            name)
+        )
+)
+
+
+(defwidget widg_vpns []
+    (box
+        :orientation "v"
+        :class 'netw-menu'
+        :space-evenly false
+        (box
+            :orientation 'v'
+            :visible { var_vpn_script_exec != 'loading_error' }
+            (label
+                :text 'Click 󰑓 to load available vpns'
+                :visible { jvar_vpns == '[]' })
+            (for vpn in jvar_vpns
+                (vpn_entry
+                    :name { vpn["name"] }
+                    :onclick `${EWW_CMD} update jvar_vpn_selection='${ vpn }'`
+                    :selected { vpn["name"] == jvar_vpn_selection["name"] }
+                    :error { vpn["connecting"] == "e" ? true : false }
+                    :active { vpn["active"] == 'yes' ? true : false }
+                    :inprogress { vpn["inprogress"] == 'y' ? true : false })
+            )
+        )
+        (label
+            :text 'Loading error'
+            :visible { var_vpn_script_exec == 'loading_error' })
+        (box
+            :orientation 'h'
+            :height 50
+            (vpn_control
+                :active_when { var_vpn_script_exec == '' }
+                :name { var_vpn_script_exec == 'updown' ? var_spinner :
+                    jvar_vpn_selection["active"] == 'yes' ? '' : '' }
+                :onclick `python win_vpns/updown_connection.py --mode ${ jvar_vpn_selection["active"] == 'yes' ? 'down' : 'up' } '${jvar_vpn_selection}' '${jvar_vpns}'`)
+            (vpn_control
+                :active_when { var_vpn_script_exec == '' } 
+                :name { var_vpn_script_exec == 'loading' ? var_spinner : '󰑓' }
+                :onclick `python win_vpns/update_vpn_list.py`)
+            (vpn_control
+                :name ''
+                :onclick `${EWW_CMD} close win_vpns && ${EWW_CMD} update var_vpn=false`)
+        )))
+
+
+(defwindow win_vpns []
+    :monitor 0
+    :windowtype "normal"
+    :geometry (geometry :x "-5%"
+                      :y "5%"
+                      :width "10%"
+                      :height "10%"
+                      :anchor "top right")
+    :stacking "fg"
+    :wm-ignore true
+    :reserve (struts :side "top" :distance "4%")
+    (widg_vpns))
+
+

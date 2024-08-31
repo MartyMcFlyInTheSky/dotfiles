@@ -1,0 +1,187 @@
+@import 'win_networks/networks.scss'
+@import 'win_vpns/vpns.scss'
+
+
+* {
+  all: unset; //Unsets everything so you can style everything from scratch
+}
+
+
+
+
+//Global Styles
+.bar {
+  background-color: #3a3a3a;
+  color: #b0b4bc;
+  padding: 10px;
+}
+
+// Styles on classes (see eww.yuck for more information)
+
+
+.wifibuttons {
+  background-color: gray;
+  border: 2px solid black;
+  border-radius: 2px;
+}
+
+.active {
+  background-color: yellow;
+  color: black;
+}
+
+.inactive {
+  background-color: blue;
+  color: black;
+}
+
+.reload-button {
+  background-color: yellow;
+  color: black;
+  border: 2px solid black;
+  border-radius: 50;
+}
+
+.combo-box {
+  background-color: gray;
+  border: 2px solid black;
+  color: black;
+  margin: 20px;
+}
+
+.wifi2 {
+  background-color: white;
+  color: black;
+  border-radius: 10px;
+}
+
+$spinner-size: 50px;
+$spinner-color: #007bff;
+$spinner-border-width: 4px;
+$spinner-animation-duration: 1s;
+
+// Spinner element
+.spinner {
+  border: $spinner-border-width solid rgba($spinner-color, 0.2);
+  border-top: $spinner-border-width solid $spinner-color;
+  border-radius: 50%;
+  animation: spin $spinner-animation-duration linear infinite;
+}
+
+// Keyframes for the spin animation
+@keyframes spin {
+  0% {
+    -gtk-icon-transform: rotate(0deg);
+  }
+  100% {
+    -gtk-icon-transform: rotate(360deg);
+  }
+  // to { -gtk-icon-transform: rotate(1turn); }
+}
+
+
+
+.sidestuff slider {
+  all: unset;
+  color: #ffd5cd;
+}
+
+.wifi_button {
+  border: 2px solid yellow;
+  background-color: yellow;
+}
+
+.wifi {
+  background-color: yellow;
+  transition: background-color 0.3s ease; /* Smooth transition effect */
+}
+
+.wifi-enabled {
+  background-color: blue;
+}
+
+.wifi:hover {
+  background-color: blue;
+}
+
+.metric scale trough highlight {
+  all: unset;
+  background-color: #D35D6E;
+  color: #000000;
+  border-radius: 10px;
+}
+.metric scale trough {
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 3px;
+  min-width: 50px;
+  margin-left: 10px;
+  margin-right: 20px;
+}
+.metric scale trough highlight {
+  all: unset;
+  background-color: #D35D6E;
+  color: #000000;
+  border-radius: 10px;
+}
+.metric scale trough {
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 3px;
+  min-width: 50px;
+  margin-left: 10px;
+  margin-right: 20px;
+}
+.label-ram {
+  font-size: large;
+}
+.workspaces button:hover {
+  color: #D35D6E;
+}
+
+
+// ---- new ------
+
+
+.widg_bar {
+  font-family: '0xProto Nerd Font Mono', Phosphor, sans-serif;
+  font-size: 20px;
+  color: #D7D7D7;
+  background-color: #181818;
+  padding: 0.25em 0.25em;
+}
+
+.bar_group {
+  background-color: #181818;
+  // background-color: yellow;
+  border-radius: 10px;
+}
+
+.group_element {
+  margin: 0.5em 0.5em;
+  border-radius: 0.5em;
+}
+
+.group_element:hover {
+  color: #FFFFFF;
+  background-color: #343434;
+}
+
+.group_element_active {
+  margin: 0.5em 0.5em;
+  border-radius: 0.5em;
+  border: 1px solid #0078D4;
+  background-color: #04395E;
+}
+
+.revealer_text {
+  padding: 0em 0.5em;
+}
+
+.icon {
+  font-size: 1.25em;
+  padding: 0em 0.4em;
+}
+

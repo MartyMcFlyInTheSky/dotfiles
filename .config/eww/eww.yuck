@@ -1,0 +1,163 @@
+(include "./win_networks/networks.yuck")
+(include "./win_vpns/vpns.yuck")
+(defvar pythondir "~/anaconda3/envs/eww/bin/python")
+
+(defvar btn_w_vpn false)
+
+(deflisten wifibox
+    :initial "Looking for wifi"
+    "~/anaconda3/envs/eww/bin/python ~/.config/eww/scripts/dyn_network.py list_networks"
+    )
+
+(defvar network_list "(label :text '...')")
+
+(defvar loading false)
+
+(defvar spinner_symbol "spinny")
+(defvar wifibox_selected "")
+
+(defwidget wifibox []
+    (box 
+        :orientation 'v'
+        (children)
+    ))
+
+;; Connecting
+(defvar connecting false)
+(defvar connecting_text "Connect")
+
+(defvar btn_w_network false)
+
+(deflisten curr_network :initial '{ "ssid": "-" }'
+  "python scripts/yield_curr_network.py")
+
+
+(defvar reveal_wifi false)
+(defvar var_wifi false)
+
+(defwidget wifi []
+    (eventbox
+        :onhover `${EWW_CMD} update reveal_wifi=true`
+        :onhoverlost `${EWW_CMD} update reveal_wifi=false`
+        :cursor 'pointer'
+        :class { var_wifi? 'group_element_active' : 'group_element'}
+        (button
+            :onclick { !var_wifi ? `${EWW_CMD} open win_networks && ${EWW_CMD} update var_wifi=true && python win_networks/update_nw_list.py` :
+                `${EWW_CMD} close win_networks && ${EWW_CMD} update var_wifi=false`}
+            (box
+                :orientation 'h'
+                :space-evenly false
+                (revealer
+                    :transition 'slideleft'
+                    :reveal reveal_wifi
+                    :duration '1s'
+                    (label :text 'mywifi' :class 'revealer_text'))
+                (label :text '󰤨' :class 'icon')))
+    )
+)
+
+(defvar reveal_vpn false)
+(defvar var_vpn false)
+
+(defwidget vpn []
+    (eventbox
+        :onhover `${EWW_CMD} update reveal_vpn=true`
+        :onhoverlost `${EWW_CMD} update reveal_vpn=false`
+        :cursor 'pointer'
+        :class { var_vpn ? 'group_element_active' : 'group_element' }
+        (button
+            :onclick { !var_vpn ? `${EWW_CMD} open win_vpns && ${EWW_CMD} update var_vpn=true && python win_vpn/update_vpn_list.py` : 
+                `${EWW_CMD} close win_vpns && ${EWW_CMD} update var_vpn=false`}
+            (box
+                :orientation 'h'
+                :space-evenly false
+                (revealer
+                    :transition 'slideleft'
+                    :reveal reveal_vpn
+                    :duration '1s'
+                    (label :text 'myvpn' :class 'revealer_text'))
+                (label :text '󰖂' :class 'icon')))
+    )
+)
+
+
+(defwidget widg_sidestuff []
+  (box :class "sidestuff"
+    :orientation "h"
+    :space-evenly false
+    :halign "end"
+    (wifi)
+    (vpn)
+    ))
+
+
+(defwidget bar_group [halign]
+    (box :orientation 'h'
+        :halign halign
+        :hexpand false
+        :space-evenly false
+        :class 'bar_group'
+        (children)
+    ))
+
+
+;; ----- workspaces ------
+
+(defvar var_active_wsp 0)
+
+(defwidget wsp_no [number]
+    (eventbox
+        :cursor 'pointer'
+        :class { var_active_wsp == number ? 'group_element_active' : 'group_element' }
+        (button
+            :onclick `${EWW_CMD} update var_active_wsp=${number}`
+            (label :text number :class 'revealer_text')
+            )
+
+    ))
+
+(defwidget widg_workspaces []
+  (box :class "workspaces"
+       :orientation "h"
+       :space-evenly true
+       :halign "start"
+    (wsp_no :number 1)
+    (wsp_no :number 2)
+    (wsp_no :number 3)
+    (wsp_no :number 4)
+    (wsp_no :number 5)
+    (wsp_no :number 6)
+    (wsp_no :number 7)
+    (wsp_no :number 8)
+    (wsp_no :number 9)
+    (wsp_no :number 10)
+    ))
+
+
+(defwidget widg_bar []
+  (centerbox :orientation "h"
+    :valign 'fill'
+   ;; :class 'widg_bar'
+    :class 'widg_bar'
+    (bar_group :halign 'start'
+        (widg_workspaces)
+        )
+    (bar_group :halign 'center'
+        (label :text '${ formattime(EWW_TIME, "%b %d %H:%M") }')
+        )
+    (bar_group :halign 'end'
+        (widg_sidestuff))
+
+    ))
+
+
+(defwindow win_bar
+  :monitor 0
+  :windowtype "dock"
+  :geometry (geometry :x "0%"
+                      :y "0%"
+                      :width "100%"
+                      :height "30px"
+                      :anchor "top center")
+  :reserve (struts :side "top" :distance "2%")
+  (widg_bar))
