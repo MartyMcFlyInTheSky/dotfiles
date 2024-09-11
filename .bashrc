@@ -126,6 +126,7 @@ export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
 eval "$(zoxide init bash)"
 
 export SYSTEMD_EDITOR=vim
+export FZF_DEFAULT_OPTS='--bind "alt-j:down,alt-k:up"'
 
 
 # Make some adaptions based on whether we're on remote or not 

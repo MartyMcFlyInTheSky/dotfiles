@@ -1,10 +1,18 @@
+
+# ----- Aliases -----
+
+# For ourselves
+alias ba="vim ~/.bash_aliases"
 alias rl="readlink -f"
+
+# Git
 alias gitroot='cd $(git rev-parse --show-toplevel)'
+alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
+
 function lg { ll | grep $1; }
 
 # enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+if [ -x /usr/bin/dircolors ]; then test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
@@ -29,8 +37,82 @@ alias lg='ls -alF | grep'
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 alias rgf='rg --files | rg'
-alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
-alias cdf='cd $(find . -type d -print | fzf)'
 alias pg='ps aux | grep'
 
-alias cd='z'
+# Some stuff I picked up on the internet
+alias please='sudo !!'
+alias cl='clear'
+alias rr='curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash'
+alias update='sudo apt-get update && sudo apt-get upgrade'
+
+chdir() {
+    mkdir -p "$1"
+    cd "$1"
+}
+
+
+# ----- Keybindings -----
+
+
+# Helper commands to work with readline bindings
+_save_command_line() {
+   READLINE_LINE_OLD="$READLINE_LINE"
+   READLINE_POINT_OLD="$READLINE_POINT"
+   READLINE_LINE=
+   READLINE_POINT=0
+}
+
+_restore_command_line() {
+   READLINE_LINE="$READLINE_LINE_OLD"
+   READLINE_POINT="$READLINE_POINT_OLD"
+}
+
+pushup() {
+    pushd .. &>/dev/null
+}
+
+popdown() {
+    popd +0 &>/dev/null
+}
+
+# Restore cl is universal
+bind -x '"\201":"_restore_command_line"'
+
+# Bind pushd / popd
+bind -x '"\202":"_save_command_line; pushup"'
+bind '"\ek":"\202\n\201"'
+bind -x '"\203":"_save_command_line; popdown"'
+bind '"\ej":"\203\n\201"'
+
+# Better fuzzy find over command output
+bind -x '"\ep":"READLINE_LINE=$(eval ${READLINE_LINE} | fzf --exact); READLINE_POINT=0"'
+
+# Better cd <subdir>
+# bind -x '"\C-x\C-o":"_save_command_line; cd $(find . -maxdepth 1 -type d | fzf)"'
+# bind '"\ej":"\C-x\C-o\n\C-x\C-r"'
+
+# Better ls -al
+bind -x '"\el":"ls -al"'
+
+clip_firstw() {
+    READLINE_POINT_OLD="$READLINE_POINT"
+    first_word=$(echo ${READLINE_LINE} | awk '{print $1}')
+    # Use OSC52 sequence to make it work over ssh
+    printf "\\033]52;c;$(echo -n $first_word | base64)\\a"
+    READLINE_LINE=$(echo ${READLINE_LINE} | awk '{for (i=2; i<=NF; i++) printf $i " ";}')
+    READLINE_POINT=${READLINE_POINT_OLD}
+}
+
+clip_lastw() {
+    READLINE_POINT_OLD="$READLINE_POINT"
+    last_word=$(echo ${READLINE_LINE} | awk '{print $NF}')
+    printf "\\033]52;c;$(echo -n $last_word | base64)\\a"
+    READLINE_LINE=$(echo ${READLINE_LINE} | awk '{for (i=1; i<NF; i++) printf $i " ";}')
+    READLINE_POINT=${READLINE_POINT_OLD}
+}
+
+
+# Trim first and last word
+bind -x '"\C-h":"clip_firstw"'
+bind -r "\C-l"
+bind -x '"\C-l":"clip_lastw"'
