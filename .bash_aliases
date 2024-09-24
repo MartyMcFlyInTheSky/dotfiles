@@ -3,6 +3,7 @@
 
 # For ourselves
 alias ba="vim ~/.bash_aliases"
+alias brc="vim ~/.bashrc"
 alias rl="readlink -f"
 
 # Git
@@ -45,10 +46,16 @@ alias cl='clear'
 alias rr='curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash'
 alias update='sudo apt-get update && sudo apt-get upgrade'
 
+# Copy using osc52 copy command
+# alias cpy='echo -en "\x1b]52;c;$(base64 -w0 -)\x07"'
+alias cpy='xclip -selection clipboard'
+
 chdir() {
     mkdir -p "$1"
     cd "$1"
 }
+
+alias v='nvim'
 
 
 # ----- Keybindings -----
@@ -85,14 +92,14 @@ bind -x '"\203":"_save_command_line; popdown"'
 bind '"\ej":"\203\n\201"'
 
 # Better fuzzy find over command output
-bind -x '"\ep":"READLINE_LINE=$(eval ${READLINE_LINE} | fzf --exact); READLINE_POINT=0"'
+#bind -x '"\ep":"READLINE_LINE=$(eval ${READLINE_LINE} | fzf --exact); READLINE_POINT=0"'
 
 # Better cd <subdir>
 # bind -x '"\C-x\C-o":"_save_command_line; cd $(find . -maxdepth 1 -type d | fzf)"'
 # bind '"\ej":"\C-x\C-o\n\C-x\C-r"'
 
 # Better ls -al
-bind -x '"\el":"ls -al"'
+bind -x '"\el":"ls -latr"'
 
 clip_firstw() {
     READLINE_POINT_OLD="$READLINE_POINT"
