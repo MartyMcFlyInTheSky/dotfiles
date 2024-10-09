@@ -106,16 +106,16 @@ if [ -f "$MY_HOME/.bash_aliases" ]; then
     . "$MY_HOME/.bash_aliases"
 fi
 
-if [ -f "$MY_HOME/.bash_functions.sh" ]; then
-    . "$MY_HOME/.bash_functions.sh"
+if [ -f "$MY_HOME/.bash_functions.bash" ]; then
+    . "$MY_HOME/.bash_functions.bash"
 fi
 
-if [ -f "$MY_HOME/.bash_keybindings.sh" ]; then
-    . "$MY_HOME/.bash_keybindings.sh"
+if [ -f "$MY_HOME/.bash_keybindings.bash" ]; then
+    . "$MY_HOME/.bash_keybindings.bash"
 fi
 
-if [ -f "$MY_HOME/.bash_completions.sh" ]; then
-    . "$MY_HOME/.bash_completions.sh"
+if [ -f "$MY_HOME/.bash_completions.bash" ]; then
+    . "$MY_HOME/.bash_completions.bash"
 fi
 
 # Extend paths for scripts and binaries
@@ -150,9 +150,11 @@ fi
 
 # ** Everything after here is not considered on remote **
 
-ssh-add ~/.ssh/meteomatics_gitlab
-ssh-add ~/.ssh/meteomatics_github
+ssh-add ~/.ssh/private_github
+ssh-add ~/.ssh/mm_gitlab_and_servers
 ssh-add ~/.ssh/gitlab_private
+
+export PATH="$PATH:/opt/nvim-linux64/bin"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

@@ -17,13 +17,22 @@ bash_login() {
 }
 
 ssh() {
-    # local host="$1"
-    # echo "host = $host"
-    # shift
-    command ssh -t -o RemoteCommand="git -C '/tmp/sbeer/dotfiles' pull --rebase \
-         || git clone https://github.com/MartyMcFlyInTheSky/dotfiles.git '/tmp/sbeer/dotfiles'; \
-            bash --rcfile '/tmp/sbeer/dotfiles/.bashrc' -i" "$@"
-    # command ssh -t -o RemoteCommand="echo 'Hello';bash -i" "$@"
+    if [ "$#" -gt 1 ]; then
+        command ssh "$@"
+    else
+        local remote_command=$(cat <<-'EOF'
+            DOTFILES_DIR=~/test/sbeer/dotfiles
+            if [[ -d "${DOTFILES_DIR}" ]]; then
+                git -C "${DOTFILES_DIR}" pull --rebase
+            else
+                mkdir -p "${DOTFILES_DIR}"
+                git clone 'https://github.com/MartyMcFlyInTheSky/dotfiles.git' "${DOTFILES_DIR}"
+            fi
+            bash --rcfile "${DOTFILES_DIR}/.bashrc" -i
+EOF
+        )
+        command ssh -t -o "RemoteCommand=$remote_command" "$@"
+    fi
 }
 
 tmux() {

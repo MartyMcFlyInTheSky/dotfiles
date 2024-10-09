@@ -24,11 +24,8 @@ cd_forward() {
     popd +0 &>/dev/null
 }
 
-
-
-bind -x '"\201": cd_forward'
-bind -x '"\202": cd_back'
-
-bind '"\C-j": "\201\C-m"' 
-bind '"\C-k": "\202\C-m"' 
+# bind -x '"\201": cd_forward'
+# bind -x '"\202": cd_back'
+# bind '"\C-j": "\201\C-m"' 
+# bind '"\C-k": "\202\C-m"' 
 

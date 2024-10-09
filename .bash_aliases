@@ -100,26 +100,3 @@ bind '"\ej":"\203\n\201"'
 
 # Better ls -al
 bind -x '"\el":"ls -latr"'
-
-clip_firstw() {
-    READLINE_POINT_OLD="$READLINE_POINT"
-    first_word=$(echo ${READLINE_LINE} | awk '{print $1}')
-    # Use OSC52 sequence to make it work over ssh
-    printf "\\033]52;c;$(echo -n $first_word | base64)\\a"
-    READLINE_LINE=$(echo ${READLINE_LINE} | awk '{for (i=2; i<=NF; i++) printf $i " ";}')
-    READLINE_POINT=${READLINE_POINT_OLD}
-}
-
-clip_lastw() {
-    READLINE_POINT_OLD="$READLINE_POINT"
-    last_word=$(echo ${READLINE_LINE} | awk '{print $NF}')
-    printf "\\033]52;c;$(echo -n $last_word | base64)\\a"
-    READLINE_LINE=$(echo ${READLINE_LINE} | awk '{for (i=1; i<NF; i++) printf $i " ";}')
-    READLINE_POINT=${READLINE_POINT_OLD}
-}
-
-
-# Trim first and last word
-bind -x '"\C-h":"clip_firstw"'
-bind -r "\C-l"
-bind -x '"\C-l":"clip_lastw"'

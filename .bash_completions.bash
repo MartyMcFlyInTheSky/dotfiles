@@ -3,7 +3,7 @@ __cmp_history() {
     local cur="$2"
     local prev="$3"
 
-    local selected_command=$(history | fzf --tac --no-sort | sed 's/^[ ]*[0-9]*[ ]*//')
+    local selected_command=$(history | fzf --exact --tac --no-sort | sed 's/^[ ]*[0-9]*[ ]*//')
     if [[ -n "$selected_command" ]]; then
       COMPREPLY=( "$selected_command" )
     else
@@ -61,8 +61,10 @@ __cmp_exec() {
     esac
 }
 
-
-complete -I -F __cmp_exec -o bashdefault
+# The -I specifier can only be used from bash 5.2 (https://stackoverflow.com/questions/79025685/bash-complete-i-invalid-option/79025820)
+if [ "${BASH_VERSINFO[0]}" -ge 5 ] && [ "${BASH_VERSINFO[1]}" -ge 0 ]; then
+    complete -I -F __cmp_exec -o bashdefault
+fi
 
 complete -o nospace -F __cmp_cmake cmake
 
