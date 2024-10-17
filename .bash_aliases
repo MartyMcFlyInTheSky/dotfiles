@@ -27,7 +27,7 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
-alias lg='ls -alF | grep'
+alias lg='ls -alF | grep -i'
 
 # Use nvim by default
 # alias vim='nvim'
