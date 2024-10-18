@@ -28,6 +28,7 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 alias lg='ls -alF | grep -i'
+alias cg='crontab -l | grep -i'
 
 # Use nvim by default
 # alias vim='nvim'
