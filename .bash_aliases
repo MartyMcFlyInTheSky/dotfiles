@@ -27,8 +27,11 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
+
+# Some common greps
 alias lg='ls -alF | grep -i'
 alias cg='crontab -l | grep -i'
+alias pg='ps aux | grep -i'
 
 # Use nvim by default
 # alias vim='nvim'
@@ -39,7 +42,6 @@ alias cg='crontab -l | grep -i'
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 alias rgf='rg --files | rg'
-alias pg='ps aux | grep'
 
 # Some stuff I picked up on the internet
 alias please='sudo !!'
