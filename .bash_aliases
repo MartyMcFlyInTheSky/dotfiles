@@ -77,29 +77,25 @@ _restore_command_line() {
    READLINE_POINT="$READLINE_POINT_OLD"
 }
 
-pushup() {
-    pushd .. &>/dev/null
+dirstack_next() {
+    pushd +1 > /dev/null
 }
 
-popdown() {
-    popd +0 &>/dev/null
+dirstack_prev() {
+    pushd -0 > /dev/null
 }
 
 # Restore cl is universal
 bind -x '"\201":"_restore_command_line"'
 
-# Bind pushd / popd
-bind -x '"\202":"_save_command_line; pushup"'
+# Go up one directory
+bind -x '"\204":"_save_command_line; cd .."'
+bind '"\eh":"\204\n\201"'
+# Rotate pushed directories
+bind -x '"\202":"_save_command_line; dirstack_next"'
 bind '"\ek":"\202\n\201"'
-bind -x '"\203":"_save_command_line; popdown"'
+bind -x '"\203":"_save_command_line; dirstack_prev"'
 bind '"\ej":"\203\n\201"'
-
-# Better fuzzy find over command output
-#bind -x '"\ep":"READLINE_LINE=$(eval ${READLINE_LINE} | fzf --exact); READLINE_POINT=0"'
-
-# Better cd <subdir>
-# bind -x '"\C-x\C-o":"_save_command_line; cd $(find . -maxdepth 1 -type d | fzf)"'
-# bind '"\ej":"\C-x\C-o\n\C-x\C-r"'
 
 # Better ls -al
 bind -x '"\el":"ls -latr"'
