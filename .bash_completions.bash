@@ -3,7 +3,7 @@ __cmp_history() {
     local cur="$2"
     local prev="$3"
 
-    local selected_command=$(history | fzf --exact --tac --no-sort | sed 's/^[ ]*[0-9]*[ ]*//')
+    local selected_command=$(HISTTIMEFORMAT="" history | fzf --exact --tac --no-sort | sed 's/^[ ]*[0-9]*[ ]*//')
     if [[ -n "$selected_command" ]]; then
       COMPREPLY=( "$selected_command" )
     else
