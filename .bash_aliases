@@ -5,6 +5,7 @@
 alias ba="vim ~/.bash_aliases"
 alias brc="vim ~/.bashrc"
 alias rl="readlink -f"
+alias rp="realpath"
 
 # Git
 alias gitroot='cd $(git rev-parse --show-toplevel)'
