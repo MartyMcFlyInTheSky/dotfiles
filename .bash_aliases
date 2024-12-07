@@ -34,10 +34,6 @@ alias lg='ls -alF | grep -i'
 alias cg='crontab -l | grep -i'
 alias pg='ps aux | grep -i'
 
-# Use nvim by default
-# alias vim='nvim'
-
-
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
@@ -54,12 +50,8 @@ alias update='sudo apt-get update && sudo apt-get upgrade'
 # alias cpy='echo -en "\x1b]52;c;$(base64 -w0 -)\x07"'
 alias cpy='xclip -selection clipboard'
 
-chdir() {
-    mkdir -p "$1"
-    cd "$1"
-}
-
-alias v='nvim'
+alias vim='${VISUAL:-vim}'
+alias v='${VISUAL:-vim}'
 
 
 # ----- Keybindings -----

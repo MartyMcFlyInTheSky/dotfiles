@@ -39,9 +39,6 @@ tmux() {
     command tmux -f "$XDG_CONFIG_HOME/tmux/tmux.conf" -L sbeer "$@"
 }
 
-vim() {
-    command vim -Nu "$XDG_CONFIG_HOME/vim/vimrc" "$@"
-}
 
 # Export overwritten functions
 export -f tmux

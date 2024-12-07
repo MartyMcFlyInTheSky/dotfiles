@@ -18,6 +18,17 @@ export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
 
+
+# Set default visual editor to vim/nvim
+if [[ -n ${SSH_CONNECTION} ]]; then
+    export VISUAL="vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
+else
+    export VISUAL="nvim"
+fi
+export EDITOR="$VISUAL"
+export GIT_EDITOR="$VISUAL"
+
+
 # don't put duplicate lines or lines starting with space in the history.  # See bash(1) for more options
 HISTCONTROL=ignoreboth
 
@@ -154,7 +165,10 @@ ssh-add ~/.ssh/private_github
 ssh-add ~/.ssh/mm_gitlab_and_servers
 ssh-add ~/.ssh/gitlab_private
 
-export PATH="$PATH:/opt/nvim-linux64/bin"
+export IDF_PATH=~/esp/esp-idf
+export IDF_TOOLS_PATH=~/.espressif
+
+export PATH="$PATH:/opt/nvim-linux64/bin:$IDF_PATH:$IDF_TOOLS_PATH"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
