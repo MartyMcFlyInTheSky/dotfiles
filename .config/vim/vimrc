@@ -85,6 +85,11 @@ set updatetime=50
 " Highlight the 80th column
 set colorcolumn=80
 
+" Change style of normal mode vs insert mode cursor
+" (https://stackoverflow.com/questions/6488683/how-to-change-the-cursor-between-normal-and-insert-modes-in-vim)
+let &t_SI = "\e[6 q"
+let &t_EI = "\e[2 q"
+
 " Source additional configuration files
 
 source $XDG_CONFIG_HOME/vim/keybindings.vim
