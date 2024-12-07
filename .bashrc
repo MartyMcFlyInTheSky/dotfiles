@@ -50,6 +50,9 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
+
+# ------ Prompt string ------
+
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
@@ -76,10 +79,28 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+
+darkblue='34;123;170' # 1C668D
+lightblue='134;189;223' # EA577B
+green='87;240;138' # 57F08A
+darkpurple='158;1;66'
+red='213;62;79'
+
+green_txt="\e[38;2;${green}m"
+darkblue_txt="\e[38;2;${darkblue}m"
+lightblue_txt="\e[38;2;${lightblue}m"
+red_txt="\e[38;2;${red}m"
+color_reset='\e[0m'
+
+# Add git branch if its present to PS1
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/'
+}
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}'"${darkblue_txt}\u@\h:${lightblue_txt}$ \w ${red_txt}"'$(parse_git_branch)'" ${color_reset}\n ${green_txt}❯${color_reset} "
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(parse_git_branch)\$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -91,6 +112,7 @@ xterm*|rxvt*)
 *)
     ;;
 esac
+
 
 
 # colored GCC warnings and errors
@@ -145,7 +167,7 @@ if [ -n "$SSH_CONNECTION" ]; then
     echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
     
     # Recreate bash login behaviour (https://github.com/rbenv/rbenv/wiki/Unix-shell-initialization#bash)
-    bash_login 
+    # bash_login 
 
     # Some applications do not follow xdg standard,
     # for these we need to manually urge them to use
