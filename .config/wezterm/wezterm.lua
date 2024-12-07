@@ -20,12 +20,6 @@ config.keys = {
         mods = 'LEADER',
         action = act.SendString('\r~.'),
     },
-    -- Better wezterm find
-    {
-        key = 'F',
-        mods = 'SHIFT|CTRL',
-        action = wezterm.action.Search { Regex = '' },
-    },
 --    {
 --        key = 'C',
 --        mods = 'CTRL|SHIFT',
