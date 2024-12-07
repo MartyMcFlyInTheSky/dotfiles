@@ -43,4 +43,3 @@ tmux() {
 # Export overwritten functions
 export -f tmux
 export -f ssh
-export -f vim
