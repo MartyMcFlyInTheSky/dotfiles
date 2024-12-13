@@ -61,23 +61,6 @@ config.keys = {
     --         end
     --     end),
     -- },
-    {
-        key = 'c',
-        mods = 'CTRL|SHIFT',
-        -- action = act.SendString("Hello World"),
-        action = wezterm.action_callback(function(win, pane)
-            -- win:perform_action(act.SendString("Hello World"), pane)
-            if pane:is_alt_screen_active() then
-                -- Send the custom escape sequence
-                win:perform_action(act.SendString("\033[99;6u"), pane)
-                -- win:perform_action(act.SendString("iHello nvim!\r"), pane)
-                wezterm.log_info("alt screen was active")
-            else
-                -- Otherwise, do nothing or other action if needed
-                win:perform_action(act.CopyTo("Clipboard"), pane)
-            end
-        end),
-    },
 }
 
 config.font = wezterm.font_with_fallback {
@@ -118,6 +101,23 @@ config.colors = {
         "#e5e5e5", -- bright white
     },
 }
+
+-- config.background = {
+--     {
+--         source={
+--             File={
+--                 path = wezterm.config_dir .. "/nodes.gif",
+--                 speed=0.2
+--             }
+--         },
+--         repeat_x = 'Mirror',
+--         hsb = dimmer,
+--         -- When the viewport scrolls, move this layer 10% of the number of
+--         -- pixels moved by the main viewport. This makes it appear to be
+--         -- further behind the text.
+--         attachment = { Parallax = 0.1 },
+--     }
+-- }
 
 
 -- Random backgroundcolors
