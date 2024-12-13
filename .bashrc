@@ -131,6 +131,12 @@ if ! shopt -oq posix; then
   fi
 fi
 
+
+# Enable multiline command preservation (https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash)
+shopt -s cmdhist
+shopt -s lithist
+
+
 # Alias definitions.
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
