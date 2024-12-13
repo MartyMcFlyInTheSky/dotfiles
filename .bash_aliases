@@ -92,3 +92,14 @@ bind '"\ej":"\203\n\201"'
 
 # Better ls -al
 bind -x '"\el":"ls -latr"'
+
+
+# Helper command to cpy to clipboard
+_cpy_to_clipboard() {
+    local text="$READLINE_LINE"
+    local base64_text=$(echo -n "$text" | base64)
+    printf '\033]52;c;%s\a' "$base64_text"
+}
+
+# Copy current command prompt to clipboard
+bind -x '"\C-h":"_cpy_to_clipboard"'
