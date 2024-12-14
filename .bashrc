@@ -28,6 +28,17 @@ fi
 export EDITOR="$VISUAL"
 export GIT_EDITOR="$VISUAL"
 
+# History
+# Enable multiline command preservation
+# https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash
+# https://askubuntu.com/questions/1133015/multiline-command-chunks-in-bash-history-into-multiple-lines
+shopt -s cmdhist
+shopt -s lithist
+HISTTIMEFORMAT='%F %T '
+
+if [[ -n ${SSH_USER} ]]; then
+    export HISTFILE="$HOME/.history_$SSH_USER"
+fi
 
 # don't put duplicate lines or lines starting with space in the history.  # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -80,25 +91,35 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 
-darkblue='34;123;170' # 1C668D
-lightblue='134;189;223' # EA577B
-green='87;240;138' # 57F08A
-darkpurple='158;1;66'
-red='213;62;79'
+# Define the colors and their RGB values
+declare -A colors=(
+  ["earth_yellow"]="228;178;103"
+  ["ghost_white"]="247;247;253"
+  ["dark_coldenrod"]="196;137;49"
+  ["field_drab"]="96;74;32"
+)
 
-green_txt="\e[38;2;${green}m"
-darkblue_txt="\e[38;2;${darkblue}m"
-lightblue_txt="\e[38;2;${lightblue}m"
-red_txt="\e[38;2;${red}m"
-color_reset='\e[0m'
+# Function to generate ANSI escape code for a color
+get_color_txt() {
+  local color_name=$1
+  local rgb=${colors[$color_name]}
+  echo -ne "\[\e[38;2;${rgb}m\]"
+}
 
-# Add git branch if its present to PS1
+# Reset color
+color_reset='\[\e[0m\]'
+
+# Add git branch if it's present to PS1
 parse_git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/'
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1/'
 }
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}'"\[${darkblue_txt}\]\u@\h:\[${lightblue_txt}\]$ \w \[${red_txt}\]"'$(parse_git_branch)'" \[${color_reset}\]\n \[${green_txt}\]❯\[${color_reset}\] "
+    PS1='${debian_chroot:+($debian_chroot)}'
+    PS1+="$(get_color_txt earth_yellow)"'\u@\h'"${color_reset}:"
+    PS1+="$(get_color_txt ghost_white)"'\w'"${color_reset}"
+    PS1+="$(get_color_txt field_drab)"'$(parse_git_branch)'"${color_reset}"
+    PS1+="\n$(get_color_txt earth_yellow)"' \$'"${color_reset} "
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(parse_git_branch)\$ '
 fi
@@ -131,10 +152,6 @@ if ! shopt -oq posix; then
   fi
 fi
 
-
-# Enable multiline command preservation (https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash)
-shopt -s cmdhist
-shopt -s lithist
 
 
 # Alias definitions.
