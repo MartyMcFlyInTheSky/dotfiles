@@ -166,10 +166,6 @@ if [ -f "$MY_HOME/.bash_functions.bash" ]; then
     . "$MY_HOME/.bash_functions.bash"
 fi
 
-if [ -f "$MY_HOME/.bash_keybindings.bash" ]; then
-    . "$MY_HOME/.bash_keybindings.bash"
-fi
-
 if [ -f "$MY_HOME/.bash_completions.bash" ]; then
     . "$MY_HOME/.bash_completions.bash"
 fi
