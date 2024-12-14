@@ -72,7 +72,7 @@ config.font = wezterm.font_with_fallback {
 
 -- config.color_scheme = 'Dracula'
 config.colors = {
-    foreground = "#C2C8EA",  -- periwinkle
+    foreground = "#B3BBE5",  -- periwinkle
     background = "#1A170E",  -- smoky_black
     cursor_bg = "#d4d4d4",   -- editorCursor.foreground in VS Code
     cursor_border = "#d4d4d4",
