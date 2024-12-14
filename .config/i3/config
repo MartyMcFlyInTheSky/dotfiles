@@ -48,10 +48,10 @@ exec zen
 exec feh --bg-fill --randomize ~/.wallpaper/*
 
 # Start eww bar
-exec_always --no-startup-id "${XDG_CONFIG_HOME:-$HOME/.config/i3/scripts}/launch_bar.bash"
+# exec_always --no-startup-id "${XDG_CONFIG_HOME:-$HOME/.config/i3/scripts}/launch_bar.bash"
 # exec_always --no-startup-id $HOME/.config/i3/scripts/launch_bar.bash
 
-exec_always "$HOME/.config/i3/scripts/i3_python_ipc.py"
+# exec_always "$HOME/.config/i3/scripts/i3_python_ipc.py"
 
 
 # ----- END CUSTOM execs -----
