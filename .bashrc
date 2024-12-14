@@ -185,54 +185,54 @@ export SYSTEMD_EDITOR=vim
 export FZF_DEFAULT_OPTS='--bind "alt-j:down,alt-k:up"'
 
 
-# Make some adaptions based on whether we're on remote or not 
-if [ -n "$SSH_CONNECTION" ]; then
+# Conda init for current shell depending on if we're in remote or local context
+if [[ -n "${SSH_CONNECTION}" ]]; then
     echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
-    
-    # Recreate bash login behaviour (https://github.com/rbenv/rbenv/wiki/Unix-shell-initialization#bash)
-    # bash_login 
 
-    # Some applications do not follow xdg standard,
-    # for these we need to manually urge them to use
-    # the corresponding config files
-    
     # Also ssh should use the repo's config file
     alias ssh="ssh -F ${MY_HOME}/.ssh/config"
 
-    # Use return since this script is sourced
-    return
-fi
-
-
-# ** Everything after here is not considered on remote **
-
-ssh-add ~/.ssh/private_github
-ssh-add ~/.ssh/mm_gitlab_and_servers
-ssh-add ~/.ssh/gitlab_private
-
-export IDF_PATH=~/esp/esp-idf
-export IDF_TOOLS_PATH=~/.espressif
-
-export PATH="$PATH:/opt/nvim-linux64/bin:$IDF_PATH:$IDF_TOOLS_PATH"
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
+    # >>> conda initialize >>>
+    # !! Contents within this block are managed by 'conda init' !!
+    __conda_setup="$('/home/process/software/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
     else
-        export PATH="/home/sbeer/anaconda3/bin:$PATH"
+        if [ -f "/home/process/software/miniconda3/etc/profile.d/conda.sh" ]; then
+            . "/home/process/software/miniconda3/etc/profile.d/conda.sh"
+        else
+            export PATH="/home/process/software/miniconda3/bin:$PATH"
+        fi
     fi
+    unset __conda_setup
+    # <<< conda initialize <<<
+else
+    # >>> conda initialize >>>
+    # !! Contents within this block are managed by 'conda init' !!
+    __conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
+            . "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
+        else
+            export PATH="/home/sbeer/anaconda3/bin:$PATH"
+        fi
+    fi
+    unset __conda_setup
+    # <<< conda initialize <<<
+
+    ssh-add ~/.ssh/private_github
+    ssh-add ~/.ssh/mm_gitlab_and_servers
+    ssh-add ~/.ssh/gitlab_private
+    
+    export IDF_PATH=~/esp/esp-idf
+    export IDF_TOOLS_PATH=~/.espressif
+    
+    export PATH="$PATH:/opt/nvim-linux64/bin:$IDF_PATH:$IDF_TOOLS_PATH"
+
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    
+    # Source nomad environment
+    source /home/sbeer/dev/nomad-config/.envrc
 fi
-unset __conda_setup
-# <<< conda initialize <<<
-
-conda activate meteomatics
-
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-# Source nomad environment
-source /home/sbeer/dev/nomad-config/.envrc
