@@ -35,7 +35,7 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 # ----- CUSTOM execs -----
 
 # load home screen layout by default
-exec_always ~/.screenlayout/home.sh
+# exec_always ~/.screenlayout/home.sh
 
 # Make MS edge passwords work
 exec --no-startup-id /usrk
