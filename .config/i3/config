@@ -41,8 +41,10 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id /usrk
 # exec microsoft-edge --password-store=gnome-libsecret
 
-# Start zen
+# Start custom apps
 exec zen
+exec slack
+exec obsidian
 
 # Set background image
 exec feh --bg-fill --randomize ~/.wallpaper/*
@@ -211,3 +213,5 @@ for_window [class="ksnip"] floating enable
 
 # Apps that start in a dedicated workspace
 assign [class="pgadmin4"] workspace $ws8
+assign [class="Slack"] workspace $ws9
+assign [class="obsidian"] workspace $ws10
