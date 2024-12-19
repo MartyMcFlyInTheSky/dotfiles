@@ -221,14 +221,12 @@ else
     ssh-add ~/.ssh/private_github
     ssh-add ~/.ssh/mm_gitlab_and_servers
     ssh-add ~/.ssh/gitlab_private
-    
-    export IDF_PATH=~/esp/esp-idf
-    export IDF_TOOLS_PATH=~/.espressif
-    
-    export PATH="$PATH:/opt/nvim-linux64/bin:$IDF_PATH:$IDF_TOOLS_PATH"
+
+    export PATH="$PATH:/opt/nvim-linux64/bin"
 
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     
     # Source nomad environment
     source /home/sbeer/dev/nomad-config/.envrc
 fi
+

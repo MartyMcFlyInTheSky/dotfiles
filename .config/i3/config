@@ -208,3 +208,6 @@ workspace $ws10 output HDMI-1
 
 # Apps that start floating
 for_window [class="ksnip"] floating enable
+
+# Apps that start in a dedicated workspace
+assign [class="pgadmin4"] workspace $ws8
