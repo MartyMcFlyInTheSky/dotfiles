@@ -90,6 +90,13 @@ bind '"\ek":"\202\n\201"'
 bind -x '"\203":"_save_command_line; dirstack_prev"'
 bind '"\ej":"\203\n\201"'
 
+better_ls() {
+    ls -lAtr
+}
+
 # Better ls -al
-bind -x '"\el":"ls -latr"'
+bind -x '"\el":"better_ls"'
+
+# Show newest 10 files in a folder
+bind -x '"\C-h":"command ls -1U | head"'
 
