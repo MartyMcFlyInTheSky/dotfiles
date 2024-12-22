@@ -1,21 +1,25 @@
 
 
 -- Indentation --
+-- (https://gist.github.com/LunarLambda/4c444238fb364509b72cfb891979f1dd)
 
--- Set tab width to 4 spaces
-vim.opt.tabstop = 4
--- Set for proper backspacing
-vim.opt.softtabstop = 4
-
--- Use spaces instead of tabs
+-- On <Tab> indentation width is translated with blanks
 vim.opt.expandtab = true
+-- Set tab width to 4 blanks
+vim.opt.tabstop = 4
+-- On < and > and autoindent, how blanks to insert
+vim.opt.shiftwidth = 0 -- use value of tabstop
+-- How much to backspace
+vim.opt.softtabstop = 4
+-- Don't use shiftwidth at start of the line
+vim.opt.smarttab = false
 
--- Enable autoindent and smartindent
-vim.opt.autoindent = true
--- Spaces to use for autoindent
-vim.opt.shiftwidth = 4
+
 -- Disable smartindent if using treesitter indent (https://www.reddit.com/r/neovim/comments/14n6iiy/if_you_have_treesitter_make_sure_to_disable/)
+-- Automatically indent after special chracters, e.g. braces {
 vim.opt.smartindent = false
+-- Auto-indent new lines
+vim.opt.autoindent = true
 
 -- -- require "nvchad.options"
 -- 
