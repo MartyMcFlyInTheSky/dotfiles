@@ -4,7 +4,8 @@
 # Quick open aliases
 alias ba="vim ~/.bash_aliases"
 alias brc="vim ~/.bashrc"
-alias nk="vim ~/.config/nvim/lua/config/keybindings.lua"
+alias vk="vim ~/.config/nvim/lua/config/keybindings.lua"
+alias vo="vim ~/.config/nvim/lua/config/settings.lua"
 alias rl="readlink -f"
 alias rp="realpath"
 
