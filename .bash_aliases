@@ -1,4 +1,3 @@
-
 # ----- Aliases -----
 
 # Quick open aliases
@@ -16,7 +15,8 @@ alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sb
 function lg { ll | grep $1; }
 
 # enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
@@ -55,29 +55,27 @@ alias cpy='xclip -selection clipboard'
 alias vim='${VISUAL:-vim}'
 alias v='${VISUAL:-vim}'
 
-
 # ----- Keybindings -----
-
 
 # Helper commands to work with readline bindings
 _save_command_line() {
-   READLINE_LINE_OLD="$READLINE_LINE"
-   READLINE_POINT_OLD="$READLINE_POINT"
-   READLINE_LINE=
-   READLINE_POINT=0
+    READLINE_LINE_OLD="$READLINE_LINE"
+    READLINE_POINT_OLD="$READLINE_POINT"
+    READLINE_LINE=
+    READLINE_POINT=0
 }
 
 _restore_command_line() {
-   READLINE_LINE="$READLINE_LINE_OLD"
-   READLINE_POINT="$READLINE_POINT_OLD"
+    READLINE_LINE="$READLINE_LINE_OLD"
+    READLINE_POINT="$READLINE_POINT_OLD"
 }
 
 dirstack_next() {
-    pushd +1 > /dev/null
+    pushd +1 >/dev/null
 }
 
 dirstack_prev() {
-    pushd -0 > /dev/null
+    pushd -0 >/dev/null
 }
 
 # Restore cl is universal
@@ -92,7 +90,6 @@ bind '"\ek":"\202\n\201"'
 bind -x '"\203":"_save_command_line; dirstack_prev"'
 bind '"\ej":"\203\n\201"'
 
-
 # Better ls -al
 bind -x '"\el":"echo; command ls -lAtr"'
 
@@ -101,4 +98,3 @@ bind -x '"\eu":"echo; command ls -1U | head"'
 
 # Show oldest 10 files in a folder
 bind -x '"\ed":"echo; command ls -1U | tail"'
-

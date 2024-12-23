@@ -4,9 +4,8 @@
 
 # If not running interactively, don't do anything
 case $- in *i*) ;;
-      *) return;;
+*) return ;;
 esac
-
 
 # Follow xdg standard paths
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -18,12 +17,11 @@ export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
 
-
 # Set default visual editor to vim/nvim
 if [[ -n ${SSH_CONNECTION} ]]; then
-    export VISUAL="vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
+	export VISUAL="vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
 else
-    export VISUAL="nvim"
+	export VISUAL="nvim"
 fi
 export EDITOR="$VISUAL"
 export GIT_EDITOR="$VISUAL"
@@ -37,7 +35,7 @@ shopt -s lithist
 HISTTIMEFORMAT='%F %T '
 
 if [[ -n ${SSH_USER} ]]; then
-    export HISTFILE="$HOME/.history_$SSH_USER"
+	export HISTFILE="$HOME/.history_$SSH_USER"
 fi
 
 # don't put duplicate lines or lines starting with space in the history.  # See bash(1) for more options
@@ -61,17 +59,16 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-
 # ------ Prompt string ------
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
+	debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes;;
+xterm-color | *-256color) color_prompt=yes ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -80,30 +77,29 @@ esac
 #force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
-    else
-	color_prompt=
-    fi
+	if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+		# We have color support; assume it's compliant with Ecma-48
+		# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+		# a case would tend to support setf rather than setaf.)
+		color_prompt=yes
+	else
+		color_prompt=
+	fi
 fi
-
 
 # Define the colors and their RGB values
 declare -A colors=(
-  ["earth_yellow"]="228;178;103"
-  ["ghost_white"]="247;247;253"
-  ["dark_coldenrod"]="196;137;49"
-  ["field_drab"]="96;74;32"
+	["earth_yellow"]="228;178;103"
+	["ghost_white"]="247;247;253"
+	["dark_coldenrod"]="196;137;49"
+	["field_drab"]="96;74;32"
 )
 
 # Function to generate ANSI escape code for a color
 get_color_txt() {
-  local color_name=$1
-  local rgb=${colors[$color_name]}
-  echo -ne "\[\e[38;2;${rgb}m\]"
+	local color_name=$1
+	local rgb=${colors[$color_name]}
+	echo -ne "\[\e[38;2;${rgb}m\]"
 }
 
 # Reset color
@@ -111,68 +107,60 @@ color_reset='\[\e[0m\]'
 
 # Add git branch if it's present to PS1
 parse_git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1/'
+	git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1/'
 }
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}'
-    PS1+="$(get_color_txt earth_yellow)"'\u@\h'"${color_reset}:"
-    PS1+="$(get_color_txt ghost_white)"'\w'"${color_reset}"
-    PS1+="$(get_color_txt field_drab)"'$(parse_git_branch)'"${color_reset}"
-    PS1+="\n$(get_color_txt earth_yellow)"' \$'"${color_reset} "
+	PS1='${debian_chroot:+($debian_chroot)}'
+	PS1+="$(get_color_txt earth_yellow)"'\u@\h'"${color_reset}:"
+	PS1+="$(get_color_txt ghost_white)"'\w'"${color_reset}"
+	PS1+="$(get_color_txt field_drab)"'$(parse_git_branch)'"${color_reset}"
+	PS1+="\n$(get_color_txt earth_yellow)"' \$'"${color_reset} "
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(parse_git_branch)\$ '
+	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(parse_git_branch)\$ '
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
+xterm* | rxvt*)
+	PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+	;;
+*) ;;
 esac
-
-
 
 # colored GCC warnings and errors
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
+	if [ -f /usr/share/bash-completion/bash_completion ]; then
+		. /usr/share/bash-completion/bash_completion
+	elif [ -f /etc/bash_completion ]; then
+		. /etc/bash_completion
+	fi
 fi
-
-
 
 # Alias definitions.
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
 if [ -f "$MY_HOME/.bash_aliases" ]; then
-    . "$MY_HOME/.bash_aliases"
+	. "$MY_HOME/.bash_aliases"
 fi
 
 if [ -f "$MY_HOME/.bash_functions.bash" ]; then
-    . "$MY_HOME/.bash_functions.bash"
+	. "$MY_HOME/.bash_functions.bash"
 fi
 
 if [ -f "$MY_HOME/.bash_completions.bash" ]; then
-    . "$MY_HOME/.bash_completions.bash"
+	. "$MY_HOME/.bash_completions.bash"
 fi
 
 # Extend paths for scripts and binaries
 export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
-
 
 # Install zoxide
 eval "$(zoxide init bash)"
@@ -180,53 +168,55 @@ eval "$(zoxide init bash)"
 export SYSTEMD_EDITOR=vim
 export FZF_DEFAULT_OPTS='--bind "alt-j:down,alt-k:up"'
 
-
 # Conda init for current shell depending on if we're in remote or local context
 if [[ -n "${SSH_CONNECTION}" ]]; then
-    echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
+	echo "SSH_CONNECTION is set to ${SSH_CONNECTION}"
 
-    # Also ssh should use the repo's config file
-    alias ssh="ssh -F ${MY_HOME}/.ssh/config"
+	# Also ssh should use the repo's config file
+	alias ssh="ssh -F ${MY_HOME}/.ssh/config"
 
-    # >>> conda initialize >>>
-    # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$('/home/process/software/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "/home/process/software/miniconda3/etc/profile.d/conda.sh" ]; then
-            . "/home/process/software/miniconda3/etc/profile.d/conda.sh"
-        else
-            export PATH="/home/process/software/miniconda3/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
-    # <<< conda initialize <<<
+	# >>> conda initialize >>>
+	# !! Contents within this block are managed by 'conda init' !!
+	__conda_setup="$('/home/process/software/miniconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
+	if [ $? -eq 0 ]; then
+		eval "$__conda_setup"
+	else
+		if [ -f "/home/process/software/miniconda3/etc/profile.d/conda.sh" ]; then
+			. "/home/process/software/miniconda3/etc/profile.d/conda.sh"
+		else
+			export PATH="/home/process/software/miniconda3/bin:$PATH"
+		fi
+	fi
+	unset __conda_setup
+	# <<< conda initialize <<<
 else
-    # >>> conda initialize >>>
-    # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
-        else
-            export PATH="/home/sbeer/anaconda3/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
-    # <<< conda initialize <<<
+	# >>> conda initialize >>>
+	# !! Contents within this block are managed by 'conda init' !!
+	__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
+	if [ $? -eq 0 ]; then
+		eval "$__conda_setup"
+	else
+		if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
+			. "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
+		else
+			export PATH="/home/sbeer/anaconda3/bin:$PATH"
+		fi
+	fi
+	unset __conda_setup
+	# <<< conda initialize <<<
 
-    ssh-add ~/.ssh/private_github
-    ssh-add ~/.ssh/mm_gitlab_and_servers
-    ssh-add ~/.ssh/gitlab_private
+	ssh-add ~/.ssh/private_github
+	ssh-add ~/.ssh/mm_gitlab_and_servers
+	ssh-add ~/.ssh/gitlab_private
 
-    export PATH="$PATH:/opt/nvim-linux64/bin"
+	export PATH="$PATH:/opt/nvim-linux64/bin"
 
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    
-    # Source nomad environment
-    source /home/sbeer/dev/nomad-config/.envrc
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+	# Source nomad environment
+	source /home/sbeer/dev/nomad-config/.envrc
+
+	export NVM_DIR="$HOME/.config/nvm"
+	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+	[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 fi
-
