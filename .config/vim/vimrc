@@ -1,12 +1,24 @@
 " Set runtimepath to include the config_path and config_path/after
 set runtimepath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
-set packpath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+
+if v:version >= 800
+    set packpath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+endif
 
 " Set the directory for swap files
 set dir=$XDG_DATA_HOME/vim
 
 " Set viminfo file location
-set viminfo='1000,n$XDG_STATE_HOME/vim/viminfo
+let viminfo_dir = expand($XDG_STATE_HOME) . '/vim'
+if !isdirectory(viminfo_dir)
+  " Create the folder using the shell command
+  call system('mkdir -p ' . shellescape(viminfo_dir))
+endif
+
+" Set viminfo option with correct formatting
+let viminfo_file = viminfo_dir . '/viminfo'
+exec "set viminfo='1000,n" . shellescape(viminfo_file)
+
 
 " Place .netrwhist in correct folder
 let g:netrw_home=$XDG_CACHE_HOME . '/vim'
@@ -73,8 +85,10 @@ endif
 " Set the number of lines to keep above and below the cursor
 set scrolloff=8
 
-" Always show the sign column
-set signcolumn=yes
+if v:version >= 800
+    " Always show the sign column
+    set signcolumn=yes
+endif
 
 " Append '@-@' to 'isfname' option
 set isfname+=@-@
