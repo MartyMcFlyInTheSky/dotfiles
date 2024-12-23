@@ -92,13 +92,13 @@ bind '"\ek":"\202\n\201"'
 bind -x '"\203":"_save_command_line; dirstack_prev"'
 bind '"\ej":"\203\n\201"'
 
-better_ls() {
-    ls -lAtr
-}
 
 # Better ls -al
-bind -x '"\el":"better_ls"'
+bind -x '"\el":"echo; command ls -lAtr"'
 
 # Show newest 10 files in a folder
-bind -x '"\C-h":"command ls -1U | head"'
+bind -x '"\eu":"echo; command ls -1U | head"'
+
+# Show oldest 10 files in a folder
+bind -x '"\ed":"echo; command ls -1U | tail"'
 
