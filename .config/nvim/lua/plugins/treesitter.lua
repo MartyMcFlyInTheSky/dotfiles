@@ -14,6 +14,8 @@ return {
 			"heex",
 			"javascript",
 			"html",
+            "rust",
+            "toml",
 		},
 		sync_install = false,
 		highlight = {

@@ -11,6 +11,8 @@ return {
 			ensure_installed = {
 				"lua_ls",
 				"bashls",
+                -- temporarily disabled because of Invalid line col error (https://github.com/rust-lang/rust-analyzer/issues/17289)
+				-- "rust_analyzer",
 			},
 		},
 		lazy = false,
@@ -24,6 +26,17 @@ return {
 			lspconfig["bashls"].setup({
 				filetypes = { "sh", "bash" },
 			})
+            -- lspconfig["rust_analyzer"].setup({
+            --     root_dir = lspconfig.util.root_pattern("Cargo.toml"),
+            --     filetypes = { "rust" },
+            --     settings = {
+            --         ["rust-analyzer"] = {
+            --             cargo = {
+            --                 allFeatures = true,
+            --             },
+            --         },
+            --     },
+            -- })
 		end,
 		keys = {
 			{ "K", vim.lsp.buf.hover, {} },
@@ -32,4 +45,12 @@ return {
 		},
 		lazy = false,
 	},
+    -- Rust specific
+    {
+        "rust-lang/rust.vim",
+        ft = "rust",
+        init = function()
+            vim.g.rustfmt_autosave = 1
+        end,
+    },
 }
