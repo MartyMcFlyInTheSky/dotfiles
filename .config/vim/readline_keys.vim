@@ -3,31 +3,21 @@
 " Version:      1.0
 " GetLatestVimScripts: 4359 1 :AutoInstall: rsi.vim
 
-if exists("g:loaded_rsi") || v:version < 700 || &cp
-  finish
-endif
-let g:loaded_rsi = 1
 
+" Wait 50 milliseconds for keys after escape sequence.
 set ttimeout
 if &ttimeoutlen == -1
   set ttimeoutlen=50
 endif
 
-inoremap        <C-A> <C-O>^
-inoremap   <C-X><C-A> <C-A>
-cnoremap        <C-A> <Home>
-cnoremap   <C-X><C-A> <C-A>
 
-inoremap <expr> <C-B> getline('.')=~'^\s*$'&&col('.')>strlen(getline('.'))?"0\<Lt>C-D>\<Lt>Esc>kJs":"\<Lt>Left>"
-cnoremap        <C-B> <Left>
+function! s:ctrl_u()
+  if getcmdpos() > 1
+    let @- = getcmdline()[:getcmdpos()-2]
+  endif
+  return "\<C-U>"
+endfunction
 
-inoremap <expr> <C-D> col('.')>strlen(getline('.'))?"\<Lt>C-D>":"\<Lt>Del>"
-cnoremap <expr> <C-D> getcmdpos()>strlen(getcmdline())?"\<Lt>C-D>":"\<Lt>Del>"
-
-inoremap <expr> <C-E> col('.')>strlen(getline('.'))<bar><bar>pumvisible()?"\<Lt>C-E>":"\<Lt>End>"
-
-inoremap <expr> <C-F> col('.')>strlen(getline('.'))?"\<Lt>C-F>":"\<Lt>Right>"
-cnoremap <expr> <C-F> getcmdpos()>strlen(getcmdline())?&cedit:"\<Lt>Right>"
 
 function! s:transpose() abort
   let pos = getcmdpos()
@@ -45,17 +35,45 @@ function! s:transpose() abort
   return pre . "\<BS>\<Right>".matchstr(getcmdline()[0 : pos-2], '.$')
 endfunction
 
-cnoremap <expr> <C-T> <SID>transpose()
 
-function! s:ctrl_u()
-  if getcmdpos() > 1
-    let @- = getcmdline()[:getcmdpos()-2]
-  endif
-  return "\<C-U>"
-endfunction
+" Jump to beginning and end of line
+inoremap        <C-A> <C-O>^
+inoremap   <C-X><C-A> <C-A>
+cnoremap        <C-A> <Home>
+cnoremap   <C-X><C-A> <C-A>
 
+inoremap <expr> <C-E> col('.') > strlen(getline('.'))<bar><bar>pumvisible() ? "\<Lt>C-E>":"\<Lt>End>"
+" <C-E> is already mapped in command-line mode
+
+
+" Move forward and backward by character
+inoremap <expr> <C-B> getline('.')=~'^\s*$' && col('.')>strlen(getline('.')) ? "0\<Lt>C-D>\<Lt>Esc>kJs":"\<Lt>Left>"
+cnoremap        <C-B> <Left>
+
+inoremap <expr> <C-F> col('.') > strlen(getline('.')) ? "\<Lt>C-F>":"\<Lt>Right>"
+cnoremap <expr> <C-F> getcmdpos() > strlen(getcmdline()) ? &cedit:"\<Lt>Right>"
+
+" Delete character under cursor
+" inoremap <expr> <C-D> col('.') > strlen(getline('.')) ? "\<Lt>C-D>":"\<Lt>Del>"
+cnoremap <expr> <C-D> getcmdpos() > strlen(getcmdline()) ? "\<Lt>C-D>":"\<Lt>Del>"
+
+" Delete character before cursor
+" <C-H> is already mapped in both modes
+
+" Kill to beginning of line
 cnoremap <expr> <C-U> <SID>ctrl_u()
+" <C-U> is already mapped in insert mode
+
+" Kill to end of line
+" <C-K> is already mapped in both modes
+
+" Yank
 cnoremap <expr> <C-Y> pumvisible() ? "\<C-Y>" : "\<C-R>-"
+" inoremap        <C-Y> <C-R>-
+
+" Transpose characters
+cnoremap <expr> <C-T> <SID>transpose()
+" <C-T> is mapped to indenting this line already
 
 if exists('g:rsi_no_meta')
   finish
