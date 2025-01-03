@@ -29,6 +29,24 @@ nnoremap <TAB> :bnext<CR>
 nnoremap <C-TAB> :bprev<CR>
 
 
+" Select windows with C-hjkl
+nnoremap <C-h> :wincmd h<CR>
+nnoremap <C-j> :wincmd j<CR>
+nnoremap <C-k> :wincmd k<CR>
+nnoremap <C-l> :wincmd l<CR>
+
+" Split windows
+nnoremap <leader>h :leftabove vsp<CR>
+nnoremap <leader>j :belowright sp<CR>
+nnoremap <leader>k :leftabove sp<CR>
+nnoremap <leader>l :belowright vsp<CR>
+
+" Resizing windows
+nnoremap <S-h> :vertical res +5<CR>
+nnoremap <S-j> :res +5<CR>
+nnoremap <S-k> :res -5<CR>
+nnoremap <S-l> :vertical res -5<CR>
+
 " Move to the next line and join lines, keeping cursor position
 nnoremap J mzJ`z
 
@@ -45,7 +63,7 @@ nnoremap n nzzzv
 nnoremap N Nzzzv
 
 " Allow keeping the pasted word in the register
-xnoremap <leader>p "_dP
+" xnoremap <leader>p "_dP
 
 " Yank to the system clipboard (normal mode)
 nnoremap <leader>y "+y
@@ -60,17 +78,20 @@ nnoremap <leader>Y "+Y
 nnoremap Q <nop>
 
 " Open a new tmux window and run tmux-sessionizer.sh
-nnoremap <C-f> :silent !tmux neww tmux-sessionizer.sh<CR>
+nnoremap <C-f> :terminal tmux-sessionizer.sh<CR>
 
 " Navigate to the next location list entry and center screen
-nnoremap <leader>k :lnext<CR>zz
+" nnoremap <leader>k :lnext<CR>zz
 
 " Navigate to the previous location list entry and center screen
-nnoremap <leader>j :lprev<CR>zz
+" nnoremap <leader>j :lprev<CR>zz
 
 " Substitute the word under cursor
 nnoremap <leader>s :%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>
 
 " Make the current file executable
 nnoremap <leader>x :!chmod +x %<CR>
+
+" Include readline style keymappings
+source readline_keys.vim
 
