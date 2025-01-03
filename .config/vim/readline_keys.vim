@@ -45,7 +45,6 @@ cnoremap   <C-X><C-A> <C-A>
 inoremap <expr> <C-E> col('.') > strlen(getline('.'))<bar><bar>pumvisible() ? "\<Lt>C-E>":"\<Lt>End>"
 " <C-E> is already mapped in command-line mode
 
-
 " Move forward and backward by character
 inoremap <expr> <C-B> getline('.')=~'^\s*$' && col('.')>strlen(getline('.')) ? "0\<Lt>C-D>\<Lt>Esc>kJs":"\<Lt>Left>"
 cnoremap        <C-B> <Left>
@@ -54,26 +53,27 @@ inoremap <expr> <C-F> col('.') > strlen(getline('.')) ? "\<Lt>C-F>":"\<Lt>Right>
 cnoremap <expr> <C-F> getcmdpos() > strlen(getcmdline()) ? &cedit:"\<Lt>Right>"
 
 " Delete character under cursor
-" inoremap <expr> <C-D> col('.') > strlen(getline('.')) ? "\<Lt>C-D>":"\<Lt>Del>"
+inoremap        <C-D> <Del>
 cnoremap <expr> <C-D> getcmdpos() > strlen(getcmdline()) ? "\<Lt>C-D>":"\<Lt>Del>"
 
 " Delete character before cursor
 " <C-H> is already mapped in both modes
 
 " Kill to beginning of line
+inoremap        <C-U> <C-O>"-d^
 cnoremap <expr> <C-U> <SID>ctrl_u()
-" <C-U> is already mapped in insert mode
 
 " Kill to end of line
-" <C-K> is already mapped in both modes
+inoremap        <C-K> <C-O>"-D
+" No idea how to remap this in command-line mode
 
 " Yank
+inoremap        <C-Y> <C-R>-
 cnoremap <expr> <C-Y> pumvisible() ? "\<C-Y>" : "\<C-R>-"
-" inoremap        <C-Y> <C-R>-
 
 " Transpose characters
 cnoremap <expr> <C-T> <SID>transpose()
-" <C-T> is mapped to indenting this line already
+inoremap        <C-T> <C-O>X<C-O>p
 
 if exists('g:rsi_no_meta')
   finish
