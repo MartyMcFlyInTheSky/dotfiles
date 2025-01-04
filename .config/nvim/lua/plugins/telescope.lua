@@ -11,13 +11,13 @@ return {
 				mappings = {
 					-- Allow single esc close (https://www.reddit.com/r/neovim/comments/pzxw8h/telescope_quit_on_first_single_esc/)
 					i = {
-						["<esc>"] = require("telescope.actions").close,
+						["<esc>"] = function() require("telescope.actions").close() end,
 					},
 				},
 			},
 			extensions = {
 				["ui-select"] = {
-					require("telescope.themes").get_dropdown({}),
+					function() require("telescope.themes").get_dropdown({}) end,
 				},
 			},
 		},
