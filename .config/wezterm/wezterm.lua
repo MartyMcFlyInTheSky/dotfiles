@@ -12,6 +12,55 @@ config.leader = {
     mods = 'CTRL',
 }
 
+local function is_vim(pane)
+    -- this is set by the smart-splits plugin, and unset on ExitPre in Neovim
+    return pane:get_user_vars().IS_NVIM == 'true'
+end
+
+local function split_pane(key, direction)
+    return {
+        key = key,
+        mods = 'CTRL|SHIFT',
+        action = wezterm.action_callback(function(win, pane)
+            if is_vim(pane) and direction == 'Down' then
+                win:perform_action({
+                    SplitPane = {
+                        direction = direction,
+                        size = { Percent = 30 },
+                    }
+                }, pane)
+            else
+                win:perform_action({
+                    SplitPane = {
+                        direction = direction,
+                        size = { Percent = 50 },
+                    }
+                }, pane)
+            end
+        end),
+    }
+end
+
+
+local function focus_pane(key, direction)
+    return {
+        key = key,
+        mods = 'CTRL',
+        action = wezterm.action_callback(function(win, pane)
+            if is_vim(pane) then
+                win:perform_action({
+                    SendKey = { key = key, mods = 'CTRL' },
+                }, pane)
+            else
+                win:perform_action({
+                    ActivatePaneDirection = direction,
+                }, pane)
+            end
+        end),
+    }
+end
+
+
 config.keys = {
     -- Close (stuck) ssh session (https://apple.stackexchange.com/questions/35524/what-can-i-do-when-my-ssh-session-is-stuck)
     {
@@ -19,6 +68,41 @@ config.keys = {
         mods = 'LEADER',
         action = act.SendString('\r~.'),
     },
+    -- Prompt for a name to use for a new workspace and switch to it.
+    {
+        key = 'W',
+        mods = 'CTRL|SHIFT',
+        action = act.PromptInputLine {
+            description = wezterm.format {
+                { Attribute = { Intensity = 'Bold' } },
+                { Foreground = { AnsiColor = 'Fuchsia' } },
+                { Text = 'Enter name for new workspace' },
+            },
+            action = wezterm.action_callback(function(window, pane, line)
+                -- line will be `nil` if they hit escape without entering anything
+                -- An empty string if they just hit enter
+                -- Or the actual line of text they wrote
+                if line then
+                    window:perform_action(
+                        act.SwitchToWorkspace {
+                            name = line,
+                        },
+                        pane
+                    )
+                end
+            end),
+        },
+    },
+    -- Split panes
+    split_pane('h', 'Left'),
+    split_pane('l', 'Right'),
+    split_pane('k', 'Up'),
+    split_pane('j', 'Down'),
+    -- Focus panes
+    focus_pane('h', 'Left'),
+    focus_pane('l', 'Right'),
+    focus_pane('j', 'Down'),
+    focus_pane('k', 'Up'),
 }
 
 config.font = wezterm.font_with_fallback {
