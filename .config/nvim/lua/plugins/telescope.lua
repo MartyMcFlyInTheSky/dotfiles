@@ -10,9 +10,9 @@ return {
 			defaults = {
 				mappings = {
 					-- Allow single esc close (https://www.reddit.com/r/neovim/comments/pzxw8h/telescope_quit_on_first_single_esc/)
-					i = {
-						["<esc>"] = function() require("telescope.actions").close() end,
-					},
+					-- i = {
+					-- 	["<esc>"] = function() require("telescope.actions").close() end,
+					-- },
 				},
 			},
 			extensions = {
@@ -28,6 +28,7 @@ return {
 		end,
 		keys = {
 			{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
+			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>", desc = "List old files" },
 			{ "<C-p>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 		},
 	},
