@@ -4,6 +4,7 @@
 alias ba="vim ~/.bash_aliases"
 alias brc="vim ~/.bashrc"
 alias vk="vim ~/.config/nvim/lua/config/keybindings.lua"
+alias vak="vim ~/.config/vim/keybindings.vim"
 alias vo="vim ~/.config/nvim/lua/config/settings.lua"
 alias rl="readlink -f"
 alias rp="realpath"
@@ -51,9 +52,6 @@ alias update='sudo apt-get update && sudo apt-get upgrade'
 # Copy using osc52 copy command
 # alias cpy='echo -en "\x1b]52;c;$(base64 -w0 -)\x07"'
 alias cpy='xclip -selection clipboard'
-
-alias vim='${VISUAL:-vim}'
-alias v='${VISUAL:-vim}'
 
 # ----- Keybindings -----
 
