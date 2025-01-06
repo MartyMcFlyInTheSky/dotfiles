@@ -6,6 +6,13 @@ vim.keymap.set('n', 'R', "<CMD>t.<CR>", { noremap = true, silent = true })
 -- (Y)ank to clipboard
 vim.keymap.set('x', 'Y', '"+yy', { noremap = true, silent = true })
 
+-- Open netrw
+vim.keymap.set('n', '-', '<CMD>Ex<CR>', { noremap = true, silent = true })
+
+-- Switch back and forth between buffers
+vim.keymap.set('n', '<C-p>', '<CMD>bn<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-n>', '<CMD>bp<CR>', { noremap = true, silent = true })
+
 
 -- Readline style keybindings
 local config_home = os.getenv('XDG_CONFIG_HOME') or '~/.config'
