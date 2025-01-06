@@ -12,6 +12,7 @@ alias rp="realpath"
 # Git
 alias gitroot='cd $(git rev-parse --show-toplevel)'
 alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
+alias lazyconfig='lazygit --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
 
 function lg { ll | grep $1; }
 
