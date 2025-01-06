@@ -29,7 +29,7 @@ return {
 		keys = {
 			{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
 			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>", desc = "List old files" },
-			{ "<C-p>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 		},
 	},
 }
