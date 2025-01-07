@@ -93,5 +93,5 @@ nnoremap <leader>s :%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>
 nnoremap <leader>x :!chmod +x %<CR>
 
 " Include readline style keymappings
-source readline_keys.vim
+source $XDG_CONFIG_HOME/vim/readline_keys.vim
 
