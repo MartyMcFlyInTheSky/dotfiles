@@ -17,12 +17,23 @@ export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
 
+# Nvim client/server setup
+function vim() {
+    # NVIM_RNDPIPE should be set by wezterm on startup (should..)
+    local pipepath=${XDG_CACHE_HOME}/nvim/server_${NVIM_RNDPIPE}.pipe
+    if [[ -e "$pipepath" ]]; then
+        command nvim --server "$pipepath" --remote $(realpath "$@")
+    else
+        command nvim --listen "$pipepath" --remote $(realpath "$@")
+    fi
+}
+
 # Set default visual editor to vim/nvim
 if [[ -n ${SSH_CONNECTION} ]]; then
 	alias vim="command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
 else
 	alias vimactual="command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
-	alias vim="command nvim"
+    export -f vim
 fi
 
 export VISUAL="vim"
