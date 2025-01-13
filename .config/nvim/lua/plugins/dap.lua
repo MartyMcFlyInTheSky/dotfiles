@@ -11,11 +11,18 @@ return {
             }
             dap.configurations.rust = {
                 {
-                    name = "Launch file",
+                    name = "rust target",
                     type = "cppdbg",
                     request = "launch",
                     program = function()
-                        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+                        -- Get last directory of the cwd
+                        local cwd = vim.fn.getcwd()
+                        local last_path = cwd:match(".*/(.*)")
+                        if last_path == nil then
+                            last_path = cwd
+                        end
+                        local target = cwd .. '/target/debug/' .. last_path
+                        return target
                     end,
                     cwd = '${workspaceFolder}',
                     stopOnEntry = true,
@@ -51,7 +58,7 @@ return {
             end
         end,
         keys = {
-            { "<leader>dt", function() require("dap").toggle_breakpoint() end, {} },
+            { "<leader>b", function() require("dap").toggle_breakpoint() end, {} },
             { "<leader>dc", function() require("dap").continue() end,          {} },
             { "<leader>dd", function() require("dapui").close() end,          {} },
         },
