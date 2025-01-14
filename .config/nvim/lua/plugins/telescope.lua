@@ -5,6 +5,7 @@ return {
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-telescope/telescope-ui-select.nvim",
+			"nvim-telescope/telescope-dap.nvim",
 		},
 		opts = {
 			defaults = {
@@ -25,11 +26,13 @@ return {
 			local telescope = require("telescope")
 			telescope.setup(opts)
 			telescope.load_extension("ui-select")
+			telescope.load_extension("dap")
 		end,
 		keys = {
-			{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
-			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>", desc = "List old files" },
+			{ "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Live grep" },
+			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>",   desc = "List old files" },
 			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+			{ "<leader>fd", "<cmd>Telescope dap configurations<cr>", desc = "Get dap configurations" },
 		},
 	},
 }
