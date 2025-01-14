@@ -2,9 +2,7 @@ return {
     {
         "mfussenegger/nvim-dap",
         config = function()
-            local dap = require("dap")
-            dap.adapters.cppdbg = {
-                id = 'cppdbg',
+            local dap = require("dap") dap.adapters.cppdbg = { id = 'cppdbg',
                 type = 'executable',
                 command =
                 '/home/sbeer/.vscode/extensions/ms-vscode.cpptools-1.22.11-linux-x64/debugAdapters/bin/OpenDebugAD7',
@@ -52,15 +50,22 @@ return {
             end
             dap.listeners.before.event_terminated.dapui_config = function()
                 dapui.close()
-                dap.listeners.before.event_exited.dapui_config = function()
-                end
+            end
+            dap.listeners.before.event_exited.dapui_config = function()
                 dapui.close()
             end
         end,
         keys = {
-            { "<leader>b", function() require("dap").toggle_breakpoint() end, {} },
-            { "<leader>dc", function() require("dap").continue() end,          {} },
-            { "<leader>dd", function() require("dapui").close() end,          {} },
+            { "<leader>dl",  function() require("dap").step_into() end, { desc = "Debugger step into" } },
+            { "<leader>dj", function() require("dap").step_over() end, { desc = "Debugger step over" } },
+            { "<leader>dk", function() require("dap").step_out() end, { desc = "Debugger step out" } },
+            { "<leader>dc",  function() require("dap").continue() end, { desc = "Debugger continue" } },
+            { "<leader>db", function() require("dap").toggle_breakpoint() end, { desc = "Debugger toggle breakpoint"} },
+            { "<leader>dd", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, { desc = "Debugger set conditional breakpoint"} },
+            { "<leader>de", function() require("dap").terminate() end, { desc = "Debugger reset"} },
+            { "<leader>dr", function() require("dap").run_last() end, { desc = "Debugger run last"} },
+            { "<leader>dt", "<cmd>lua vim.cmd('RustLsp testables')<CR>", { desc = "Debugger testables"} },
+            { "<leader>dx", function() require("dapui").close() end, { desc = "Debugger testables"} },
         },
     }
 }
