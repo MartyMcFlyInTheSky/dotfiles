@@ -23,6 +23,7 @@ return {
                     "html",
                     "rust",
                     "toml",
+                    "python",
                 },
                 sync_install = false,
                 highlight = {
