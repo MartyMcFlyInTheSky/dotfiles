@@ -34,5 +34,6 @@ return {
 			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 			{ "<leader>fd", "<cmd>Telescope dap configurations<cr>", desc = "Get dap configurations" },
 		},
+        cmd = { "Telescope"},
 	},
 }
