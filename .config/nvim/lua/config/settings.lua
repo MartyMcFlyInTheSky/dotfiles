@@ -21,6 +21,11 @@ vim.opt.smartindent = false
 -- Auto-indent new lines
 vim.opt.autoindent = true
 
+-- Use winbar instead of statusbar
+vim.opt.winbar = '%=%m %f %y'
+vim.opt.laststatus = 0
+
+
 -- -- require "nvchad.options"
 -- 
 -- -- local opt = vim.opt
