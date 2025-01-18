@@ -33,6 +33,7 @@ return {
 			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>",   desc = "List old files" },
 			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 			{ "<leader>fd", "<cmd>Telescope dap configurations<cr>", desc = "Get dap configurations" },
+			{ "<leader>f?", "<cmd>Telescope help_tags<cr>", desc = "Explore help tags" },
 		},
         cmd = { "Telescope"},
 	},
