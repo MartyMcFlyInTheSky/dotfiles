@@ -1,8 +1,19 @@
 return {
     {
+        "lukas-reineke/indent-blankline.nvim",
+        main = "ibl",
+        opts = {},
+        lazy = false,
+    },
+    {
         'windwp/nvim-autopairs',
         opts = {},
         event = "InsertEnter",
+    },
+    -- rainbow parens
+    {
+        "HiPhish/rainbow-delimiters.nvim",
+        event = "BufRead",
     },
     {
         'Wansmer/treesj',
