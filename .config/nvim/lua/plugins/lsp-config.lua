@@ -20,20 +20,20 @@ return {
         "neovim/nvim-lspconfig",
         dependencies = { "williamboman/mason-lspconfig.nvim" },
         config = function()
-            local capabilities = require('cmp_nvim_lsp').default_capabilities()
+            local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
             local lspconfig = require("lspconfig")
             lspconfig["lua_ls"].setup({
                 filetypes = { "lua" },
-                capabilities = capabilities,
+                capabilities = lsp_capabilities,
             })
             lspconfig["bashls"].setup({
                 filetypes = { "sh", "bash" },
-                capabilities = capabilities,
+                capabilities = lsp_capabilities,
             })
             lspconfig["pyright"].setup({
                 filetypes = { "python" },
-                capabilities = capabilities,
+                capabilities = lsp_capabilities,
                 pyright = {
                     -- Using Ruff's import organizer
                     disableOrganizeImports = true,
@@ -60,9 +60,30 @@ return {
             -- })
         end,
         keys = {
+            -- Displays hover information about the symbol under the cursor
             { "K",         vim.lsp.buf.hover,       {} },
+            -- Jump to definition
             { "gd",        vim.lsp.buf.definition,  {} },
-            { "<leader>a", vim.lsp.buf.code_action, {} },
+            -- Jump to declaration
+            { "gD",        vim.lsp.buf.declaration,  {} },
+            -- List all the implementations for the symbol under the cursor
+            { "gi",        vim.lsp.buf.implementation,  {} },
+            -- Jumps to the definition of the type symbol
+            { "go",        vim.lsp.buf.type_definition,  {} },
+            -- Lists all the references
+            { "gr",        vim.lsp.buf.references,  {} },
+            -- Displays a functin's signature information
+            { "gs",        vim.lsp.buf.signature_help,  {} },
+            -- Renames all the references to the symbol under the cursor
+            { "<F2>",        vim.lsp.buf.rename,  {} },
+            -- Selects a code action avalable at the current cursor position 
+            { "<F4>", vim.lsp.buf.code_action, {} },
+            -- Show diagnostics in a floating window
+            { "gl", vim.diagnostic.open_float, {} },
+            -- Move to the previous diagnostic
+            { "[d", vim.diagnostic.goto_prev, {} },
+            -- Move to the next diagnostic
+            { "]d", vim.diagnostic.goto_next, {} },
         },
         lazy = false,
     },
