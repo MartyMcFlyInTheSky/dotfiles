@@ -1,4 +1,11 @@
 return {
+    -- Undotree
+    {
+        'mbbill/undotree',
+        keys = {
+            { '<leader>ut', vim.cmd.UndotreeToggle, { desc = "Toggle undotree" } }
+        }
+    },
     {
         "lukas-reineke/indent-blankline.nvim",
         main = "ibl",

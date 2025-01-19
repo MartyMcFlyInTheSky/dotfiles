@@ -25,6 +25,8 @@ vim.opt.autoindent = true
 vim.opt.winbar = '%=%m %f %y'
 vim.opt.laststatus = 0
 
+-- Save undos in a file
+vim.opt.undofile = true
 
 -- -- require "nvchad.options"
 -- 
@@ -78,8 +80,6 @@ vim.opt.ruler = false
 -- o.swapfile = false
 -- o.backup = false
 -- 
--- -- Save undos in a file
--- o.undofile = true
 -- 
 -- -- Never wrap liens
 -- o.wrap = false
