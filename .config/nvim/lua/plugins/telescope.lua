@@ -6,6 +6,7 @@ return {
 			"nvim-lua/plenary.nvim",
 			"nvim-telescope/telescope-ui-select.nvim",
 			"nvim-telescope/telescope-dap.nvim",
+			"lexay/telescope-zoxide.nvim",
 		},
 		opts = {
 			defaults = {
@@ -26,6 +27,7 @@ return {
 			local telescope = require("telescope")
 			telescope.setup(opts)
 			telescope.load_extension("ui-select")
+			telescope.load_extension("zoxide")
 			telescope.load_extension("dap")
 		end,
 		keys = {
@@ -34,6 +36,7 @@ return {
 			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 			{ "<leader>fd", "<cmd>Telescope dap configurations<cr>", desc = "Get dap configurations" },
 			{ "<leader>f?", "<cmd>Telescope help_tags<cr>", desc = "Explore help tags" },
+			{ "<leader>fz", "<cmd>Telescope zoxide<cr>", desc = "Explore help tags" },
 		},
         cmd = { "Telescope"},
 	},
