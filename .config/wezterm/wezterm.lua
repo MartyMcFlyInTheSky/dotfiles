@@ -132,11 +132,13 @@ config.keys = {
 }
 
 config.font = wezterm.font_with_fallback {
-    '0xProto Nerd Font Mono',
-    'Phosphor',
-    'Koulen',
-    'Poiret One',
+    'DroidSansMNerdFont',
+    'monospace',
+    -- 'Phosphor',
+    -- 'Koulen',
+    -- 'Poiret One',
 }
+config.font_size = 12.0
 
 -- config.color_scheme = 'Dracula'
 config.colors = {
