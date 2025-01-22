@@ -1,29 +1,50 @@
 #!/usr/bin/env bash
 
-if [[ $# -eq 1 ]]; then
-    selected=$1
-else
-    selected=$(find ~/dev ~/test/sbeer -mindepth 1 -maxdepth 1 -type d | fzf)
+directories=(
+    ~/dev/
+    ~/test/sbeer/
+)
+
+existing_directories=()
+
+for dir in "${directories[@]}"; do
+    if [[ -d $dir ]]; then
+        existing_directories+=("$dir")
+    fi
+done
+
+if [[ ${#existing_directories[@]} -eq 0 ]]; then
+    echo "No project directories found!"
+    exit 1
 fi
 
-if [[ -z $selected ]]; then
+if [[ $# -eq 1 ]]; then
+    dir=$1
+else
+    dir=$(find "${existing_directories[@]}" -mindepth 1 -maxdepth 1 -type d | fzf)
+fi
+
+if [[ -z $dir ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
+session_name=$(basename "$dir" | tr . _)
 tmux_running=$(pgrep tmux)
 
+# Create session and attach to it if tmux is not yet running
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-    tmux new-session -s $selected_name -c $selected
+    tmux new-session -s $session_name -c $dir
     exit 0
 fi
 
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-    tmux new-session -ds $selected_name -c $selected
+# If tmux is running and session is not active, create new detached session
+if ! tmux has-session -t=$session_name 2> /dev/null; then
+    tmux new-session -ds $session_name -c $dir
 fi
 
+# Attach to session
 if [[ -z $TMUX ]]; then
-    tmux attach -t $selected_name
+    tmux attach -t $session_name
 else
-    tmux switch-client -t $selected_name
+    tmux switch-client -t $session_name
 fi

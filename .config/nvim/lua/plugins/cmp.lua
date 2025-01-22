@@ -27,9 +27,7 @@ return {
     },
     {
         "zbirenbaum/copilot-cmp",
-        dependencies = {
-            "zbirenbaum/copilot.lua"
-        },
+        dependencies = { "zbirenbaum/copilot.lua" },
         opts = {},
         config = function(_, opts)
             require("copilot_cmp").setup(opts)
@@ -44,6 +42,7 @@ return {
             "zbirenbaum/copilot-cmp",
             "L3MON4D3/LuaSnip",
         },
+        event = { "InsertEnter", "CmdlineEnter" },
         opts = function()
             local cmp = require("cmp")
             require("luasnip.loaders.from_vscode").lazy_load()
@@ -83,17 +82,27 @@ return {
                     ["<C-f>"] = cmp.mapping.scroll_docs(4),
                     ["<C-Space>"] = cmp.mapping.complete(),
                     ["<C-e>"] = cmp.mapping.abort(),
-                    ["<CR>"] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+                    ["<Tab>"] = cmp.mapping(function(fallback)
+                        -- This little snippet will confirm with tab, and if no entry is selected, will confirm the first item
+                        if cmp.visible() then
+                            local entry = cmp.get_selected_entry()
+                            if not entry then
+                                cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                            end
+                            cmp.confirm()
+                        else
+                            fallback()
+                        end
+                    end, { "i", "s", "c", }),
                 }),
                 sources = cmp.config.sources({
-                    { name = 'luasnip', group_index = 2 },
-                    { name = 'copilot', group_index = 2 },
+                    { name = 'luasnip',  group_index = 2 },
                     { name = 'nvim_lsp', group_index = 2 },
+                    { name = 'copilot',  group_index = 2 },
                 }, {
                     { name = "buffer" },
                 }),
             }
         end,
-        lazy = false,
     },
 }
