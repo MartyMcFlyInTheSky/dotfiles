@@ -1,3 +1,70 @@
+local on_init_lua = function(client)
+    if client.workspace_folders then
+        local path = client.workspace_folders[1].name
+        if vim.loop.fs_stat(path .. '/.luarc.json') or vim.loop.fs_stat(path .. '/.luarc.jsonc') then
+            return
+        end
+    end
+
+    client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+        runtime = {
+            -- Tell the language server which version of Lua you're using
+            -- (most likely LuaJIT in the case of Neovim)
+            version = 'LuaJIT'
+        },
+        -- Make the server aware of Neovim runtime files
+        workspace = {
+            checkThirdParty = false,
+            -- library = {
+            --     vim.env.VIMRUNTIME
+            --     -- Depending on the usage, you might want to add additional paths here.
+            --     -- "${3rd}/luv/library"
+            --     -- "${3rd}/busted/library",
+            -- }
+            -- or pull in all of 'runtimepath'. NOTE: this is a lot slower and will cause issues when working on your own configuration (see https://github.com/neovim/nvim-lspconfig/issues/3189)
+            library = vim.api.nvim_get_runtime_file("", true)
+        }
+    })
+end
+
+
+-- Use on_attach function instead of lazy keymaps to only bind the keymaps on LspAttach
+local on_attach = function(client, bufnr)
+    if client.name == "clangd" then
+        vim.keymap.set('n', '<A-o>', '<cmd>ClangdSwitchSourceHeader<cr>', { noremap = true, silent = true })
+    end
+    -- Displays hover information about the symbol under the cursor
+    vim.keymap.set('n', 'K', vim.lsp.buf.hover, { noremap = true, silent = true })
+    -- Jump to definition
+    -- <C-t> / <C-t>
+    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { noremap = true, silent = true })
+    -- Jump to declaration
+    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { noremap = true, silent = true })
+    -- List all the implementations for the symbol under the cursor
+    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { noremap = true, silent = true })
+    -- Jumps to the definition of the type symbol
+    vim.keymap.set('n', 'go', vim.lsp.buf.type_definition, { noremap = true, silent = true })
+    -- Lists all the references
+    vim.keymap.set('n', 'gr', vim.lsp.buf.references, { noremap = true, silent = true })
+    -- Displays a functin's signature information
+    vim.keymap.set('n', 'gs', vim.lsp.buf.signature_help, { noremap = true, silent = true })
+    -- Renames all the references to the symbol under the cursor
+    vim.keymap.set('n', 'R', vim.lsp.buf.rename, { noremap = true, silent = true })
+    -- Selects a code action avalable at the current cursor position
+    vim.keymap.set('n', '<F4>', vim.lsp.buf.code_action, { noremap = true, silent = true })
+    -- Show diagnostics in a floating window
+    vim.keymap.set('n', 'gl', vim.diagnostic.open_float, { noremap = true, silent = true })
+    -- Move to the previous diagnostic
+    vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { noremap = true, silent = true })
+    -- Move to the next diagnostic
+    vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { noremap = true, silent = true })
+
+    -- Telescope integration
+    vim.keymap.set('n', '<leader>fr', '<cmd>Telescope lsp_references<cr>', { noremap = true, silent = true, desc = 'Show references for current token' })
+    vim.keymap.set('n', '<leader>dl', '<cmd>Telescope diagnostics<cr>', { noremap = true, silent = true, desc = 'List diagnostic information' })
+end
+
+
 return {
     {
         "williamboman/mason.nvim",
@@ -19,19 +86,27 @@ return {
     {
         "neovim/nvim-lspconfig",
         dependencies = { "williamboman/mason-lspconfig.nvim" },
+        event = { "BufReadPre", "BufNewFile" },
         config = function()
             local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
             local lspconfig = require("lspconfig")
             lspconfig["lua_ls"].setup({
+                on_attach = on_attach,
                 filetypes = { "lua" },
                 capabilities = lsp_capabilities,
+                on_init = on_init_lua,
+                settings = {
+                    Lua = {}
+                }
             })
             lspconfig["bashls"].setup({
+                on_attach = on_attach,
                 filetypes = { "sh", "bash" },
                 capabilities = lsp_capabilities,
             })
             lspconfig["pyright"].setup({
+                on_attach = on_attach,
                 filetypes = { "python" },
                 capabilities = lsp_capabilities,
                 pyright = {
@@ -45,7 +120,9 @@ return {
                     },
                 },
             })
-            lspconfig["ruff"].setup({})
+            lspconfig["ruff"].setup({
+                on_attach = on_attach,
+            })
             -- Disabled since taken care of by rustaceanvim
             -- lspconfig["rust_analyzer"].setup({
             --     root_dir = lspconfig.util.root_pattern("Cargo.toml"),
@@ -59,32 +136,5 @@ return {
             --     },
             -- })
         end,
-        keys = {
-            -- Displays hover information about the symbol under the cursor
-            { "K",         vim.lsp.buf.hover,       {} },
-            -- Jump to definition
-            { "gd",        vim.lsp.buf.definition,  {} },
-            -- Jump to declaration
-            { "gD",        vim.lsp.buf.declaration,  {} },
-            -- List all the implementations for the symbol under the cursor
-            { "gi",        vim.lsp.buf.implementation,  {} },
-            -- Jumps to the definition of the type symbol
-            { "go",        vim.lsp.buf.type_definition,  {} },
-            -- Lists all the references
-            { "gr",        vim.lsp.buf.references,  {} },
-            -- Displays a functin's signature information
-            { "gs",        vim.lsp.buf.signature_help,  {} },
-            -- Renames all the references to the symbol under the cursor
-            { "<F2>",        vim.lsp.buf.rename,  {} },
-            -- Selects a code action avalable at the current cursor position 
-            { "<F4>", vim.lsp.buf.code_action, {} },
-            -- Show diagnostics in a floating window
-            { "gl", vim.diagnostic.open_float, {} },
-            -- Move to the previous diagnostic
-            { "[d", vim.diagnostic.goto_prev, {} },
-            -- Move to the next diagnostic
-            { "]d", vim.diagnostic.goto_next, {} },
-        },
-        lazy = false,
     },
 }

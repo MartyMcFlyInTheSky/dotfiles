@@ -32,6 +32,7 @@ return {
 		end,
 		keys = {
 			{ "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Live grep" },
+			{ "<C-s>",      "<cmd>Telescope grep_string<cr>",  desc = "Grep string" },
 			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>",   desc = "List old files" },
 			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 			{ "<leader>fd", "<cmd>Telescope dap configurations<cr>", desc = "Get dap configurations" },
@@ -39,10 +40,6 @@ return {
 			{ "<leader>fz", "<cmd>Telescope zoxide<cr>", desc = "Explore help tags" },
 			{ "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "List open buffer" },
 
-            -- LSP-specific
-            { "<leader>fr", "<cmd>Telescope lsp_references<cr>", desc = "Show references for current token" },
-            -- { "<leader>fi", "<cmd>Telescope lsp_incoming_calls<cr>", desc = "Show incoming calls" },
-            -- { "<leader>fo", "<cmd>Telescope lsp_outgoing_calls<cr>", desc = "Show outgoing calls" },
 		},
         cmd = { "Telescope"},
 	},
