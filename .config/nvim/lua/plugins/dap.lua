@@ -2,11 +2,38 @@ return {
     {
         "mfussenegger/nvim-dap",
         config = function()
-            local dap = require("dap") dap.adapters.cppdbg = { id = 'cppdbg',
-                type = 'executable',
-                command =
-                '/home/sbeer/.vscode/extensions/ms-vscode.cpptools-1.22.11-linux-x64/debugAdapters/bin/OpenDebugAD7',
+            local dap = require("dap")
+            dap.adapters.codelldb = {
+                type = "executable",
+                command = "codelldb",
             }
+            dap.configurations.cpp = {
+                {
+                    name = 'debug-lldb',
+                    type = 'codelldb',
+                    request = 'launch',
+                    program = function()
+                        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+                    end,
+                    cwd = '${workspaceFolder}',
+                    stopOnEntry = false,
+                    args = {},
+
+                    -- 💀
+                    -- if you change `runInTerminal` to true, you might need to change the yama/ptrace_scope setting:
+                    --
+                    --    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+                    --
+                    -- Otherwise you might get the following error:
+                    --
+                    --    Error on launch: Failed to attach to the target process
+                    --
+                    -- But you should be aware of the implications:
+                    -- https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html
+                    -- runInTerminal = false,
+                },
+            }
+            dap.configurations.c = dap.configurations.cpp
             dap.configurations.rust = {
                 {
                     name = "rust target",
@@ -29,6 +56,19 @@ return {
                 },
             }
         end,
+        cmd = {}
+    },
+    {
+
+        "jay-babu/mason-nvim-dap.nvim",
+        dependencies = {
+            "williamboman/mason.nvim",
+            "mfussenegger/nvim-dap",
+        },
+        opts = {
+            ensure_installed = { "codelldb", "debugpy" },
+            handlers = {}
+        }
     },
     {
         "rcarriga/nvim-dap-ui",
@@ -55,17 +95,18 @@ return {
                 dapui.close()
             end
         end,
+        -- The reason we specify it like this is because the dap table is not yet available when this luaconfig is loaded
         keys = {
-            { "<leader>dl",  function() require("dap").step_into() end, { desc = "Debugger step into" } },
-            { "<leader>dj", function() require("dap").step_over() end, { desc = "Debugger step over" } },
-            { "<leader>dk", function() require("dap").step_out() end, { desc = "Debugger step out" } },
-            { "<leader>dc",  function() require("dap").continue() end, { desc = "Debugger continue" } },
-            { "<leader>db", function() require("dap").toggle_breakpoint() end, { desc = "Debugger toggle breakpoint"} },
-            { "<leader>dd", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, { desc = "Debugger set conditional breakpoint"} },
-            { "<leader>de", function() require("dap").terminate() end, { desc = "Debugger reset"} },
-            { "<leader>dr", function() require("dap").run_last() end, { desc = "Debugger run last"} },
-            { "<leader>dt", "<cmd>lua vim.cmd('RustLsp testables')<CR>", { desc = "Debugger testables"} },
-            { "<leader>dx", function() require("dapui").close() end, { desc = "Debugger testables"} },
+            { "<leader>dl", '<cmd>DapStepInto<cr>',                                                               { desc = "Debugger step into" } },
+            { "<leader>dj", '<cmd>DapStepOver<cr>',                                                               { desc = "Debugger step over" } },
+            { "<leader>dk", '<cmd>DapStepOut<cr>',                                                                { desc = "Debugger step out" } },
+            { "<leader>dc", '<cmd>DapContinue<cr>',                                                               { desc = "Debugger continue" } },
+            { "<leader>db", '<cmd>DapToggleBreakpoint<cr>',                                                       { desc = "Debugger toggle breakpoint" } },
+            { "<leader>dd", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, { desc = "Debugger set conditional breakpoint" } },
+            { "<leader>de", '<cmd>DapTermiante<cr>',                                                              { desc = "Debugger reset" } },
+            { "<leader>dr", function() require("dap").run_last() end,                                             { desc = "Debugger run last" } },
+            { "<leader>dt", "<cmd>RustLsp testables<cr>",                                                         { desc = "Debugger testables" } },
+            { "<leader>dx", function() require("dapui").close() end,                                              { desc = "Debugger testables" } },
         },
     }
 }

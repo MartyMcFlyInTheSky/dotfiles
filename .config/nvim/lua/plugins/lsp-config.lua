@@ -32,6 +32,8 @@ end
 local on_attach = function(client, bufnr)
     if client.name == "clangd" then
         vim.keymap.set('n', '<A-o>', '<cmd>ClangdSwitchSourceHeader<cr>', { noremap = true, silent = true })
+        -- Not sure if still required but proposed by https://www.youtube.com/watch?v=lsFoZIg-oDs
+        client.server_capabilities.signatureHelpProvider = false
     end
     -- Displays hover information about the symbol under the cursor
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, { noremap = true, silent = true })
@@ -60,8 +62,10 @@ local on_attach = function(client, bufnr)
     vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { noremap = true, silent = true })
 
     -- Telescope integration
-    vim.keymap.set('n', '<leader>fr', '<cmd>Telescope lsp_references<cr>', { noremap = true, silent = true, desc = 'Show references for current token' })
-    vim.keymap.set('n', '<leader>dl', '<cmd>Telescope diagnostics<cr>', { noremap = true, silent = true, desc = 'List diagnostic information' })
+    vim.keymap.set('n', '<leader>fr', '<cmd>Telescope lsp_references<cr>',
+        { noremap = true, silent = true, desc = 'Show references for current token' })
+    vim.keymap.set('n', '<leader>dl', '<cmd>Telescope diagnostics<cr>',
+        { noremap = true, silent = true, desc = 'List diagnostic information' })
 end
 
 
@@ -135,6 +139,11 @@ return {
             --         },
             --     },
             -- })
+            lspconfig["clangd"].setup({
+                on_attach = on_attach,
+                -- filetypes = { "c", "cpp", "h", "hpp" },
+                capabilities = lsp_capabilities,
+            })
         end,
     },
 }
