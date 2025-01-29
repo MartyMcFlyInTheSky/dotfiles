@@ -80,20 +80,22 @@ return {
     },
     {
         "williamboman/mason-lspconfig.nvim",
-        dependencies = { "williamboman/mason.nvim" },
+        dependencies = {
+            "williamboman/mason.nvim",
+            "neovim/nvim-lspconfig",
+        },
+        event = { "BufReadPre", "BufNewFile" },
         opts = {
-            -- Automatically isntall the LSP servers configured in nvim-lspconfig
+            -- Automatically install the LSP servers configured in nvim-lspconfig
             automatic_installation = true,
         },
-        lazy = false,
-    },
-    {
-        "neovim/nvim-lspconfig",
-        dependencies = { "williamboman/mason-lspconfig.nvim" },
-        event = { "BufReadPre", "BufNewFile" },
-        config = function()
+        config = function(_, opts)
+            -- Mason is set up as a dependency 
+            require('mason-lspconfig').setup(opts)
+
             local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+            -- Setup servers
             local lspconfig = require("lspconfig")
             lspconfig["lua_ls"].setup({
                 on_attach = on_attach,
@@ -144,6 +146,7 @@ return {
                 -- filetypes = { "c", "cpp", "h", "hpp" },
                 capabilities = lsp_capabilities,
             })
+               
         end,
     },
 }
