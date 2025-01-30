@@ -81,8 +81,8 @@ vim.opt.ruler = false
 -- o.backup = false
 -- 
 -- 
--- -- Never wrap liens
--- o.wrap = false
+-- -- Never wrap lines
+vim.o.wrap = false
 -- 
 -- -- Keep space below and above lines
 -- o.scrolloff = 8
