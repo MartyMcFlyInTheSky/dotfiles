@@ -1,14 +1,29 @@
 -- Don't use nvim_set_keymap
 
--- (R)eplicate line
-vim.keymap.set('n', 'R', "<CMD>t.<CR>", { noremap = true, silent = true })
-
 -- (Y)ank to clipboard
-vim.keymap.set('x', 'Y', '"+yy', { noremap = true, silent = true })
+vim.keymap.set({ 'x', 'n' }, 'Y', '"+yy', { noremap = true, silent = true })
 
--- Switch back and forth between buffers
-vim.keymap.set('n', '<C-p>', '<CMD>bn<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-n>', '<CMD>bp<CR>', { noremap = true, silent = true })
+-- Quickfix list controls
+
+local toggle_qf = function()
+    local qf_exists = false
+    for _, win in pairs(vim.fn.getwininfo()) do
+        if win["quickfix"] == 1 then
+            qf_exists = true
+        end
+    end
+    if qf_exists == true then
+        vim.cmd("cclose")
+        return
+    end
+    if not vim.tbl_isempty(vim.fn.getqflist()) then
+        vim.cmd "copen"
+    end
+end
+
+vim.keymap.set('n', '<C-p>', '<CMD>cp<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-n>', '<CMD>cn<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-q>', toggle_qf, { noremap = true, silent = true })
 
 vim.api.nvim_set_keymap('n', '<Esc>k', ':t \'<-1<CR>V\'[', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<ESC>j', ':t \'>><CR>V\'[', { noremap = true, silent = true })
@@ -30,7 +45,7 @@ vim.keymap.set('x', '<A-K>', ":t '<-1<CR>V'[", { noremap = true, silent = true }
 vim.keymap.set('x', '<A-J>', ":t '><CR>V'[", { noremap = true, silent = true })
 
 -- Toggle word wrapp
-vim.keymap.set({'x', 'n'}, '<A-z>', function() vim.o.wrap = not vim.o.wrap end, { noremap = true, silent = true })
+vim.keymap.set({ 'x', 'n' }, '<A-z>', function() vim.o.wrap = not vim.o.wrap end, { noremap = true, silent = true })
 
 -- vim.keymap.set('n', '<ESC>j', '<CMD>echo "Hello escape!"<CR>', { noremap = true, silent = true })
 
