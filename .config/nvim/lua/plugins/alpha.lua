@@ -27,5 +27,6 @@ return {
 
         alpha.setup(dashboard.opts)
     end,
+    cmd = { "Alpha" },
     lazy = false,
 }

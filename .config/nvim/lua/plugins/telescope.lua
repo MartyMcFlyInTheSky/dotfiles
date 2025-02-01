@@ -32,10 +32,16 @@ return {
                     zoxide = {
                         mappings = {
                             default = {
-                                keepinsert = true,
                                 action = function(selection)
-                                    -- vim.notify("C-f pressed!")
-                                    builtin.find_files({ cwd = selection.path })
+                                    -- Close curr buffer if it's alpha, then change cwd
+                                    if vim.bo.ft == "alpha" then
+                                        local buffer = vim.api.nvim_get_current_buf()
+                                        vim.api.nvim_buf_delete(buffer, {})
+                                    end
+                                    vim.cmd.cd(selection.path)
+                                end,
+                                after_action = function(selection)
+                                    vim.cmd("Alpha")
                                 end,
                             },
                         },
