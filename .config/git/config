@@ -19,3 +19,5 @@
     refd = reflog --date=iso
 	rbranch = !git for-each-ref --count=7 --sort=-committerdate refs/heads/ refs/remotes/ --format=\"%(refname:short)\"
     lsmod = !git config --file .gitmodules --name-only --get-regexp path
+[rerere]
+	enabled = true
