@@ -45,6 +45,10 @@ vim.opt.undofile = true
 vim.opt.nu = true
 vim.opt.relativenumber = true
 vim.opt.ruler = false
+
+-- Signcolumn (for e.g. gitsigns)
+vim.opt.signcolumn = "yes"
+-- 
 -- 
 -- o.laststatus = 3
 -- o.showmode = false
@@ -86,9 +90,6 @@ vim.o.wrap = false
 -- 
 -- -- Keep space below and above lines
 -- o.scrolloff = 8
--- 
--- -- Signcolumn (for e.g. gitsigns)
--- o.signcolumn = "yes"
 -- 
 -- -- Search highlighting only when live typing
 -- o.hlsearch = false
