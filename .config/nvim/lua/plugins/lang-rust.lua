@@ -24,6 +24,9 @@ return {
     },
     {
         "mrcjkb/rustaceanvim",
+        dependencies = {
+            "williamboman/mason.nvim",
+        },
         version = '^5',
         -- This is a filetype specific plugin that works out of the box without
         -- the need to call setup()
@@ -63,6 +66,7 @@ return {
                 }
             }
         end,
+        ft = "rust",
         lazy = false, -- The plugin is lazy loaded
     }
 }
