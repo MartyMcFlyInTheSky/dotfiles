@@ -2,18 +2,35 @@ return {
     {
         "mfussenegger/nvim-dap",
         config = function()
+
+            vim.api.nvim_set_hl(0, 'YellowCursor', { fg='#FFCC00' })
+            vim.api.nvim_set_hl(0, 'YellowBack', { bg="#4C4C19" })
+
+            -- vim.fn.sign_define('DapBreakpoint', { text='●', texthl='Yellow1234', linehl='', numhl=''})
+            -- vim.fn.sign_define('DapBreakpointCondition', { text='●', texthl='HelloWorld', linehl='HelloWorld2', numhl='HelloWorld3'})
+            -- vim.fn.sign_define('DapLogPoint', { text='●', texthl='HelloWorld', linehl='HelloWorld2', numhl='HelloWorld3'})
+            vim.fn.sign_define('DapStopped', { text='', texthl='YellowCursor', linehl='YellowBack', numhl=''})
+            -- vim.fn.sign_define('DapBreakpointRejected', { text='○', texthl='HelloWorld', linehl='HelloWorld2', numhl='HelloWorld3'})
+            -- vim.fn.sign_define('DapBreakpoint', {text='●○', texthl='', linehl='HelloWorld', numhl=''})
+
             local dap = require("dap")
-            dap.adapters.codelldb = {
-                type = "executable",
-                command = "codelldb",
-            }
+            -- dap.adapters.codelldb = {
+            --     type = "executable",
+            --     command = "codelldb",
+            -- }
+            -- dap.adapters.codelldb = {
+            --     type = 'pipe',
+            --     pipe = '',
+            --     command = 
+            --     args = 
+            -- }
             dap.configurations.cpp = {
                 {
                     name = 'debug-lldb',
                     type = 'codelldb',
                     request = 'launch',
                     program = function()
-                        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+                        return vim.fn.input('Path to executable 2: ', vim.fn.getcwd() .. '/', 'file')
                     end,
                     cwd = '${workspaceFolder}',
                     stopOnEntry = false,
@@ -37,7 +54,7 @@ return {
             dap.configurations.rust = {
                 {
                     name = "rust target",
-                    type = "cppdbg",
+                    type = "codelldb",
                     request = "launch",
                     program = function()
                         -- Get last directory of the cwd
@@ -97,13 +114,14 @@ return {
         end,
         -- The reason we specify it like this is because the dap table is not yet available when this luaconfig is loaded
         keys = {
-            { "<leader>dl", '<cmd>DapStepInto<cr>',                                                               { desc = "Debugger step into" } },
-            { "<leader>dj", '<cmd>DapStepOver<cr>',                                                               { desc = "Debugger step over" } },
+            { "<leader>dh", function() require("dap").step_back() end,                                          { desc = "Debugger step over" } },
+            { "<leader>dj", '<cmd>DapStepInto<cr>',                                                               { desc = "Debugger step into" } },
             { "<leader>dk", '<cmd>DapStepOut<cr>',                                                                { desc = "Debugger step out" } },
+            { "<leader>dl", '<cmd>DapStepOver<cr>',                                                               { desc = "Debugger step over" } },
             { "<leader>dc", '<cmd>DapContinue<cr>',                                                               { desc = "Debugger continue" } },
             { "<leader>db", '<cmd>DapToggleBreakpoint<cr>',                                                       { desc = "Debugger toggle breakpoint" } },
             { "<leader>dd", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, { desc = "Debugger set conditional breakpoint" } },
-            { "<leader>de", '<cmd>DapTermiante<cr>',                                                              { desc = "Debugger reset" } },
+            { "<leader>de", '<cmd>DapTerminate<cr>',                                                              { desc = "Debugger reset" } },
             { "<leader>dr", function() require("dap").run_last() end,                                             { desc = "Debugger run last" } },
             { "<leader>dt", "<cmd>RustLsp testables<cr>",                                                         { desc = "Debugger testables" } },
             { "<leader>dx", function() require("dapui").close() end,                                              { desc = "Debugger testables" } },
