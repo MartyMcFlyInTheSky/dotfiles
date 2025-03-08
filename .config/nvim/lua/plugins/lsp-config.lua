@@ -1,32 +1,3 @@
-local on_init_lua = function(client)
-    if client.workspace_folders then
-        local path = client.workspace_folders[1].name
-        if vim.loop.fs_stat(path .. "/.luarc.json") or vim.loop.fs_stat(path .. "/.luarc.jsonc") then
-            return
-        end
-    end
-
-    client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
-        runtime = {
-            -- Tell the language server which version of Lua you're using
-            -- (most likely LuaJIT in the case of Neovim)
-            version = "LuaJIT",
-        },
-        -- Make the server aware of Neovim runtime files
-        workspace = {
-            checkThirdParty = false,
-            -- library = {
-            --     vim.env.VIMRUNTIME
-            --     -- Depending on the usage, you might want to add additional paths here.
-            --     -- "${3rd}/luv/library"
-            --     -- "${3rd}/busted/library",
-            -- }
-            -- or pull in all of 'runtimepath'. NOTE: this is a lot slower and will cause issues when working on your own configuration (see https://github.com/neovim/nvim-lspconfig/issues/3189)
-            library = vim.api.nvim_get_runtime_file("", true),
-        },
-    })
-end
-
 -- Use on_attach function instead of lazy keymaps to only bind the keymaps on LspAttach
 local on_attach = function(client, bufnr)
     -- Displays hover information about the symbol under the cursor
@@ -156,10 +127,29 @@ return {
                     local lsp_capabilities = require("cmp_nvim_lsp").default_capabilities()
                     require("lspconfig")["lua_ls"].setup({
                         on_attach = on_attach,
-                        on_init = on_init_lua,
                         capabilities = lsp_capabilities,
                         settings = {
                             Lua = {
+                                workspace = {
+                                    checkThirdParty = false,
+                                },
+                                codeLens = {
+                                    enable = true,
+                                },
+                                completion = {
+                                    callSnippet = "Replace",
+                                },
+                                doc = {
+                                    privateName = { "^_" },
+                                },
+                                hint = {
+                                    enable = true,
+                                    setType = false,
+                                    paramType = true,
+                                    paramName = "Disable",
+                                    semicolon = "Disable",
+                                    arrayIndex = "Disable",
+                                },
                                 diagnostics = {
                                     globals = { "vim" },
                                 },
