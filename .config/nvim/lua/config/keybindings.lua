@@ -47,6 +47,9 @@ vim.keymap.set('x', '<A-J>', ":t '><CR>V'[", { noremap = true, silent = true })
 -- Toggle word wrapp
 vim.keymap.set({ 'x', 'n' }, '<A-z>', function() vim.o.wrap = not vim.o.wrap end, { noremap = true, silent = true })
 
+-- Execute current file
+vim.keymap.set({ 'x', 'n' }, '<leader><leader>x', "<cmd>w<CR><cmd>source %<CR>")
+
 -- vim.keymap.set('n', '<ESC>j', '<CMD>echo "Hello escape!"<CR>', { noremap = true, silent = true })
 
 -- Readline style keybindings
