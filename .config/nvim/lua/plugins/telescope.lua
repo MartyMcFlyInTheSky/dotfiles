@@ -73,6 +73,7 @@ return {
             { "<leader>fd", "<cmd>Telescope dap configurations<cr>",                                        desc = "Get dap configurations" },
             { "<leader>f?", "<cmd>Telescope help_tags<cr>",                                                 desc = "Explore help tags" },
             { "<leader>fb", "<cmd>Telescope buffers<cr>",                                                   desc = "List open buffer" },
+            { "<leader>fr", function() require('telescope.builtin').resume() end,                           desc = "Live grep" },
 
             -- Telescope zoxide extension
             { "<leader>fz", function() require("telescope").extensions.zoxide.list() end,                   desc = "Explore help tags" },
