@@ -6,32 +6,6 @@ local config = {}
 -- of the socket (https://wezfurlong.org/wezterm/config/lua/config/mux_enable_ssh_agent.html)
 -- config.mux_enable_ssh_agent = false
 
-local random_string = function(length)
-    -- Open /dev/urandom to read random bytes
-    local random_file = io.open("/dev/urandom", "rb")
-    if not random_file then
-        wezterm.log_info("Failed to open /dev/urandom")
-    end
-
-    -- Read random bytes
-    local random_bytes = random_file:read(length)
-    random_file:close()
-
-    -- Convert bytes to a hexadecimal string
-    local random_name = ""
-    for i = 1, #random_bytes do
-        random_name = random_name .. string.format("%02x", random_bytes:byte(i))
-    end
-
-    wezterm.log_info("Generated random name: " .. random_name:sub(1, length))
-    -- Truncate to the desired length
-    return random_name:sub(1, length)
-end
-
-config.set_environment_variables = {
-    NVIM_RNDPIPE = random_string(10),
-}
-
 -- Some we still need
 config.leader = {
     key = ' ',
