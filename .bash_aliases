@@ -94,3 +94,6 @@ bind -x '"\el":"echo; command ls -lAtr"'
 
 # Show newest 10 files in a folder
 bind -x '"\eu":"echo; command ls -1U | head"'
+
+# Terminal reset shortkey
+bind -x '"":"reset"'
