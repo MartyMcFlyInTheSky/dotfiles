@@ -96,4 +96,4 @@ bind -x '"\el":"echo; command ls -lAtr"'
 bind -x '"\eu":"echo; command ls -1U | head"'
 
 # Terminal reset shortkey
-bind -x '"":"reset"'
+bind -x '"\C-r":"reset"'

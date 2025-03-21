@@ -103,21 +103,6 @@ config.keys = {
     focus_pane('l', 'Right'),
     focus_pane('j', 'Down'),
     focus_pane('k', 'Up'),
-
-    -- Send reset
-    {
-        key = 'r',
-        mods = 'LEADER',
-        action = wezterm.action_callback(function(win, pane, _)
-            local path = pane:get_foreground_process_name()
-            local basename = path:match("([^/]+)$")
-            wezterm.log_info('proc = ' .. basename)
-            if basename == "bash" then
-                win:perform_action(act.SendString(""), pane)
-                wezterm.log_info('string sent!')
-            end
-        end),
-    }
 }
 
 config.font = wezterm.font_with_fallback {
