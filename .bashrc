@@ -17,13 +17,15 @@ export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
 
-# Set default visual editor to vim/nvim
-if [[ -n ${SSH_CONNECTION} ]]; then
-	alias vim="command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
-else
-	alias vimactual="command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc"
-	alias vim="command nvim"
-fi
+function vim() {
+    # Set default visual editor to vim/nvim
+    if [[ -n ${SSH_CONNECTION} ]]; then
+        command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc "$@"
+    else
+        command nvim "$@"
+    fi
+}
+export -f vim
 
 export VISUAL="vim"
 export EDITOR="$VISUAL"
@@ -169,7 +171,25 @@ export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
 # Install zoxide
 eval "$(zoxide init bash)"
 
-export FZF_DEFAULT_OPTS='--bind "alt-j:down,alt-k:up"'
+
+# Setup fzf integration
+
+export FZF_DEFAULT_OPTS="
+--style minimal
+--bind 'ctrl-/:change-preview-window(down|hidden|)'
+--bind 'ctrl-d:preview-down,ctrl-u:preview-up'"
+
+export FZF_CTRL_T_OPTS="
+--walker-skip .git,node_modules,target
+--preview 'if file {} | grep -i 'text'; then head -100 {}; fi'
+--multi"
+
+export FZF_ALT_C_OPTS="
+--walker-skip .git,node_modules,target
+--preview 'tree -C -L 2 {}'"
+
+eval "$(fzf --bash)"
+
 
 # Conda init for current shell depending on if we're in remote or local context
 if [[ -n "${SSH_CONNECTION}" ]]; then

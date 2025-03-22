@@ -1,16 +1,3 @@
-# Bring up history selection
-__cmp_history() {
-	local cur="$2"
-	local prev="$3"
-
-	local selected_command=$(HISTTIMEFORMAT="" history | fzf --exact --tac --no-sort | sed 's/^[ ]*[0-9]*[ ]*//')
-	if [[ -n "$selected_command" ]]; then
-		COMPREPLY=("$selected_command")
-	else
-		COMPREPLY=()
-	fi
-}
-
 # Complete --target of cmake command
 __cmp_cmake() {
 	local cur="$2"
@@ -68,5 +55,4 @@ fi
 
 complete -o nospace -F __cmp_cmake cmake
 
-complete -F __cmp_history -E
 complete -F __cmp_exec bash
