@@ -35,24 +35,20 @@ __cmp_cmake() {
 }
 
 __cmp_exec() {
-	local curr="$2"
-	case "$curr" in
-	./*)
-		local selected=$(find "." ! -type d -executable | fzf --query "$curr")
-		if [[ -n "$selected" ]]; then
-			COMPREPLY=("$selected")
-		else
-			COMPREPLY=()
-		fi
-		;;
-	esac
+    local selected=$(find "." -maxdepth 3 ! -type d -executable | fzf --query "$curr")
+    if [[ -n "$selected" ]]; then
+        COMPREPLY=("$selected")
+    else
+        COMPREPLY=()
+    fi
 }
 
+complete -F __cmp_exec -E
+
 # The -I specifier can only be used from bash 5.2 (https://stackoverflow.com/questions/79025685/bash-complete-i-invalid-option/79025820)
-if [ "${BASH_VERSINFO[0]}" -ge 5 ] && [ "${BASH_VERSINFO[1]}" -ge 0 ]; then
-	complete -I -F __cmp_exec -o bashdefault
-fi
+# if [ "${BASH_VERSINFO[0]}" -ge 5 ] && [ "${BASH_VERSINFO[1]}" -ge 0 ]; then
+# 	complete -I -F __cmp_exec -o bashdefault
+# fi
 
 complete -o nospace -F __cmp_cmake cmake
 
-complete -F __cmp_exec bash
