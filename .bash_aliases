@@ -6,6 +6,8 @@ alias brc="vim ~/.bashrc"
 alias vk="vim ~/.config/nvim/lua/config/keybindings.lua"
 alias vak="vim ~/.config/vim/keybindings.vim"
 alias vo="vim ~/.config/nvim/lua/config/settings.lua"
+alias wez="vim ~/.config/wezterm/wezterm.lua"
+
 alias rl="readlink -f"
 alias rp="realpath"
 
