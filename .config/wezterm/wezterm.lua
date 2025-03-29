@@ -68,6 +68,20 @@ config.keys = {
         mods = 'LEADER',
         action = act.SendString('\r~.'),
     },
+    {
+        key = 'r',
+        mods = 'LEADER',
+        action = wezterm.action_callback(function(window, pane)
+            local foreground_app_path = pane:get_foreground_process_name()
+            local foreground_app = foreground_app_path:match("([^/]+)$")
+            if foreground_app == 'bash' then
+                window:perform_action(
+                    act.SendString('\u{85}'),
+                    pane
+                )
+            end
+        end)
+    },
     -- Prompt for a name to use for a new workspace and switch to it.
     {
         key = 'W',
