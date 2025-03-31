@@ -16,6 +16,9 @@ alias gitroot='cd $(git rev-parse --show-toplevel)'
 alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
 alias lazyconfig='lazygit --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
 
+# mm specific
+alias cfmt='/home/sbeer/dev/cpp-components/templates/clang_format_check/clang-format-check.sh'
+
 function lg { ll | grep $1; }
 
 # enable color support of ls and also add handy aliases
