@@ -103,4 +103,5 @@ bind -x '"\eu":"echo; command ls -1U | head"'
 # Terminal reset shortkey
 bind -x '"\205":"reset"'
 bind '"\C-x\C-i":"pushd "'
+bind '"\C-x\C-f":"find . -type f -iname \""'
 
