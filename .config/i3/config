@@ -38,11 +38,9 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 # exec_always ~/.screenlayout/home.sh
 
 # Make MS edge passwords work
-exec --no-startup-id /usrk
-# exec microsoft-edge --password-store=gnome-libsecret
+exec microsoft-edge --password-store=gnome-libsecret
 
 # Start custom apps
-exec zen
 exec slack
 exec obsidian
 
