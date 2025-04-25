@@ -16,7 +16,7 @@ export XDG_CONFIG_HOME=$MY_HOME/.config
 export XDG_DATA_HOME=$MY_HOME/.local/share
 export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
-export XDG_RUNTIME_DIR=$MY_HOME/.local/share # This is needed for wezterm daemon pid file allocation
+# export XDG_RUNTIME_DIR=$MY_HOME/.local/share # This is needed for wezterm daemon pid file allocation
 
 function vim() {
     # Set default visual editor to vim/nvim
