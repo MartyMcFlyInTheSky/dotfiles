@@ -307,61 +307,59 @@ log_from_fds() {
     stop_log_loop=false
 
     # Braille spinner
-    spinner=(⠁ ⠂ ⠄ ⡀ ⢀ ⠠ ⠐ ⠈)
-    local -A spinner_indices
+    local spinner=(⠁ ⠂ ⠄ ⡀ ⢀ ⠠ ⠐ ⠈)
+    local index=0
    
-    # Initialize array indices
-    for host in "${!fds[@]}"; do
-        spinner_indices["$host"]=0
-    done
-
-    local -A term_token
-    for host in "${!fds[@]}"; do
-        term_token["$host"]=
-    done
+    local -A lines
+    local -A term_tokens
 
     # Disable auto-wrap
     printf '\e[?7l'
 
     # Log everything then jump back to the top as background process
     while true; do
-        local n_new_lines=${#fds[@]}
+        local n_new_lines=0
+
+        # Forward spinner index
+        index=$(( (index + 1) % ${#spinner[@]} ))
+
+        # Read messages from all file descriptors and put them into dict
+        local lines_fmt=""
         for host in "${!fds[@]}"; do
             fd=${fds[$host]}
 
-            # Determine begin token
-            token="${term_token[$host]}"
+            # Not yet finished? Display spinner
+            local token="${term_tokens[$host]}"
             if [[ -z "$token" ]]; then
-                index="${spinner_indices[$host]}"
                 token="${spinner[$index]}"
-                spinner_indices["$host"]=$(( (index + 1) % ${#spinner[@]} ))
             fi
 
-            if IFS= read -r -t 0.05 -u "$fd" line; then
-                local pos=$(expr index "$line" $'\n')
-                if [[ "$pos" > 0 ]]; then
-                    printf "contains a newline character at ${pos}\n"
-                    sleep 2
-                fi
+            # Read line
+            if IFS= read -r -t 0.01 -u "$fd" line; then
+                ((++n_new_lines))
+                # Check for token
                 if [[ "$line" =~ ^\[\[(.+)\]\] ]]; then
-                    local final_token="${BASH_REMATCH[1]}"
-                    printf "\r%s \n" "$final_token"
-                    term_token["$host"]="$final_token"
+                    local term_token="${BASH_REMATCH[1]}"
+                    term_tokens["$host"]="$term_token"
+                    printf -v line_fmt "\r%s\n" "$term_token"
                 else
-                    printf "\033[2K\r%s %-20s: \033[90m%s\033[0m\n" "$token" "$host" "$line" # Clear line before printing new statement
+                    printf -v line_fmt "\033[2K\r%s %-20s: \033[90m%s\033[0m\n" "$token" "$host" "$line" # Clear line before printing new statement
                 fi
             else
-                printf "\r%s \n" "$token"
-                ((n_new_lines--))
+                printf -v line_fmt "\r%s\n" "$token"
             fi
+            lines_fmt+="$line_fmt"
         done
 
+        echo -en "$lines_fmt"
+
         # Stop signal received -> loop one last time
-        if [[ $stop_log_loop == true && $n_new_lines == 0 ]]; then
+        if [[ $stop_log_loop == true && "$n_new_lines" == 0 ]]; then
             break
         fi
 
         # Jump back up and repeat
+        # sleep 0.05
         printf "\033[%dA" "${#fds[@]}"
     done
 

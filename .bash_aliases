@@ -13,8 +13,12 @@ alias rp="realpath"
 
 # Git
 alias gitroot='cd $(git rev-parse --show-toplevel)'
-alias config='/usr/bin/git --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
-alias lazyconfig='lazygit --git-dir=/home/sbeer/.myconfig/ --work-tree=/home/sbeer'
+
+# Dotfiles repo (bake path into alias)
+dotfiles_dir="$HOME/.myconfig"
+alias dot="$(echo "git --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
+alias dotconf="$(echo "vim $dotfiles_dir/config")"
+alias lazydot="$(echo "lazygit --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
 
 # mm specific
 alias cfmt='/home/sbeer/dev/cpp-components/templates/clang_format_check/clang-format-check.sh'
@@ -100,8 +104,8 @@ bind -x '"\el":"echo; command ls -lAtr"'
 # Show newest 10 files in a folder
 bind -x '"\eu":"echo; command ls -1U | head"'
 
-# Terminal reset shortkey
-bind -x '"\205":"reset"'
+
 bind '"\C-x\C-i":"pushd "'
 bind '"\C-x\C-f":"find . -type f -iname \""'
 
+bind -x '"\C-s":"$HOME/.local/scripts/git-remote-sync.bash -s"'
