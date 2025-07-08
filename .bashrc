@@ -214,6 +214,9 @@ if [[ -n "${SSH_CONNECTION}" ]]; then
 	unset __conda_setup
 	# <<< conda initialize <<<
 else
+    # Disable software flow control XON/XOFF
+    stty -ixon
+
 	# >>> conda initialize >>>
 	# !! Contents within this block are managed by 'conda init' !!
 	__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"

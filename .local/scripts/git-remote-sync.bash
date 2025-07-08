@@ -2,6 +2,7 @@
 
 #
 CRITICAL_PATH_COMPONENT="/sbeer/"
+WEZTERM_BIN_RELPATH=".local/bin/wezterm"
 #
 # TODO:
 # - Consistent naming
@@ -10,6 +11,8 @@ CRITICAL_PATH_COMPONENT="/sbeer/"
 
 # Exit on error
 set -e
+# Enable extended globbing (for &&+(/) to work)
+shopt -s extglob
 
 ###### FUNCTION DEFINITIONS ######
 
@@ -40,12 +43,12 @@ read_git_remotes() {
         host=${BASH_REMATCH[2]} 
         path=${BASH_REMATCH[3]} 
 
-        # Construct json
+        # Construct json, strip trailing forward slashes from path
         out="$(jq \
-            --arg host "$host" \
-            --arg user "$user" \
-            --arg path "$path" \
-            '. + { ($host) : { "user": $user, "path": $path | sub("/+$"; "") } }' \
+            --arg host "${host}" \
+            --arg user "${user}" \
+            --arg path "${path%%+(/)}" \
+            '. + { ($host) : { "user": $user, "path": $path } }' \
         <<< "$out")"
     done
 
@@ -63,10 +66,11 @@ read_wezterm_ssh_domains() {
         return 1
     fi
 
-    lua - "$domains_filepath" "$repo_toplevel_name" << 'EOF'
+    lua - "$domains_filepath" "$repo_toplevel_name" "$WEZTERM_BIN_RELPATH" << 'EOF'
         -- Put path to module file on package path
-        local domains_filepath = arg[1]
-        local toplevel_repo_name = arg[2]
+        domains_filepath = arg[1]
+        toplevel_repo_name = arg[2]
+        wezterm_bin_relpath = arg[3]
 
         local dir, mod_name = domains_filepath:match("^(.-)/?([^/]+)%.lua$")
         package.path = dir .. "/?.lua;" .. package.path
@@ -84,7 +88,7 @@ read_wezterm_ssh_domains() {
             local user = data["username"]
 
             curr_domains[hostname] = {
-                path = path,
+                path = path:gsub("/" .. wezterm_bin_relpath, ""),
                 user = user
             }
         end 
@@ -99,6 +103,63 @@ read_wezterm_ssh_domains() {
 EOF
 }
 
+
+print_new_ssh_domains() {
+    local domains_json="$1"
+    
+    lua - "$domains_json" "$WEZTERM_BIN_RELPATH" << 'EOF'
+        domains_json = arg[1] ~= "" and arg[1] or "{}"
+        wezterm_bin_relpath = arg[2]
+
+        -- Requires `luarocks install json-lua` (do not mistake for lua-json!)
+        JSON = require("JSON")
+
+        -- Helper to serialize a Lua table into a string
+        local function serialize(tbl, indent)
+            -- TODO: This func is probably flawed but it works for our case now
+            indent = indent or ""
+            local result = "{\n"
+            for k, v in pairs(tbl) do
+                if type(v) == "table" then
+                    local key = type(k) == "string" and string.format("%s = ", k) or ""
+                    result = result .. indent  .. "  " .. key
+                    result = result .. serialize(v, indent .. "  ") .. ",\n"
+                else
+                    local key = type(k) == "string" and string.format("%s", k) or key
+                    result = result .. indent  .. "  " .. key .. " = "
+                    if type(v) == "string" then
+                        result = result .. string.format("%q", v) .. ",\n"
+                    else
+                        result = result .. tostring(v) .. ",\n"
+                    end
+                end
+            end
+            result = result .. indent .. "}"
+            return result
+        end
+
+        local new_domains = JSON:decode(domains_json)
+
+        -- Create lua table based on the new domains json file
+        local new_ssh_domains = {}
+        for hostname, v in pairs(new_domains) do
+            local domain = {
+                name = 'SSHMUX:' .. hostname,
+                remote_address = hostname,
+                username = v["user"],
+                remote_wezterm_path = v["path"] .. "/" .. wezterm_bin_relpath,
+            }
+            table.insert(new_ssh_domains, domain)
+        end
+
+        -- Write everything to stdout
+        print("-- THIS FILE IS AUTO GENERATED AND MAINTAINED BY GIT REMOTE SYNC\n")
+        print("local M = {}\n")
+        print("M.ssh_domains = " .. serialize(new_ssh_domains) .. "\n")
+        print("return M\n")
+
+EOF
+}
 
 
 update_host() {
@@ -224,79 +285,22 @@ EOF
             if [[ "$new_user" == "$old_user" && -z "$force" ]]; then
                 move_repo "$hostname" "$old" "$new"
             else
-                remove_host "$hostname" "$old" || [[ -z "$force" ]]
-                add_host "$hostname" "$new" || [[ -z "$force" ]]
+                remove_host "$hostname" "$old" || [[ -n "$force" ]]
+                add_host "$hostname" "$new" || [[ -n "$force" ]]
             fi
             
             echo -e "[[\033[33m~\033[0m]]" && return 0
         else
-            remove_host "$hostname" "$old" || [[ -z "$force" ]]
+            remove_host "$hostname" "$old" || [[ -n "$force" ]]
             echo -e "[[\033[35m-\033[0m]]" && return 0
         fi
     elif [[ -n "$new" ]]; then
-        add_host "$hostname" "$new" || [[ -z "$force" ]]
+        add_host "$hostname" "$new" || [[ -n "$force" ]]
         echo -e "[[\033[32m+\033[0m]]" && return 0
     fi
 
     echo "Error, no old or new configuration provided (empty)"
     return 1
-}
-
-
-print_new_ssh_domains() {
-    local domains_json="$1"
-    
-    lua - "$domains_json" << 'EOF'
-        domains_json = arg[1] ~= "" and arg[1] or "{}"
-
-        -- Requires `luarocks install json-lua` (do not mistake for lua-json!)
-        JSON = require("JSON")
-
-        -- Helper to serialize a Lua table into a string
-        local function serialize(tbl, indent)
-            -- TODO: This func is probably flawed but it works for our case now
-            indent = indent or ""
-            local result = "{\n"
-            for k, v in pairs(tbl) do
-                if type(v) == "table" then
-                    local key = type(k) == "string" and string.format("%s = ", k) or ""
-                    result = result .. indent  .. "  " .. key
-                    result = result .. serialize(v, indent .. "  ") .. ",\n"
-                else
-                    local key = type(k) == "string" and string.format("%s", k) or key
-                    result = result .. indent  .. "  " .. key .. " = "
-                    if type(v) == "string" then
-                        result = result .. string.format("%q", v) .. ",\n"
-                    else
-                        result = result .. tostring(v) .. ",\n"
-                    end
-                end
-            end
-            result = result .. indent .. "}"
-            return result
-        end
-
-        local new_domains = JSON:decode(domains_json)
-
-        -- Create lua table based on the new domains json file
-        local new_ssh_domains = {}
-        for hostname, v in pairs(new_domains) do
-            local domain = {
-                name = 'SSHMUX:' .. hostname,
-                remote_address = hostname,
-                username = v["user"],
-                remote_wezterm_path = v["path"],
-            }
-            table.insert(new_ssh_domains, domain)
-        end
-
-        -- Write everything to stdout
-        print("-- THIS FILE IS AUTO GENERATED AND MAINTAINED BY GIT REMOTE SYNC\n")
-        print("local M = {}\n")
-        print("M.ssh_domains = " .. serialize(new_ssh_domains) .. "\n")
-        print("return M\n")
-
-EOF
 }
 
 

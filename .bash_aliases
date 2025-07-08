@@ -108,4 +108,3 @@ bind -x '"\eu":"echo; command ls -1U | head"'
 bind '"\C-x\C-i":"pushd "'
 bind '"\C-x\C-f":"find . -type f -iname \""'
 
-bind -x '"\C-s":"$HOME/.local/scripts/git-remote-sync.bash -s"'
