@@ -60,17 +60,6 @@ export PATH="/home/sbeer/.config/nvm/versions/node/v22.12.0/bin:$PATH"
 # mm
 export SSH_KEY_MM=~/.ssh/mm_gitlab
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/sbeer/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
+# Do this before conda
+export PATH="/home/sbeer/anaconda3/bin:$PATH"
+
