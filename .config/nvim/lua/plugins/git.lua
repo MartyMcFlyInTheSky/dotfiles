@@ -1,14 +1,7 @@
 return {
     {
         'lewis6991/gitsigns.nvim',
-        opts = {
-            -- worktrees = {
-            --     {
-            --         toplevel = vim.env.HOME,
-            --         gitdir = vim.env.HOME .. '/.myconfig'
-            --     }
-            -- }
-        },
+        opts = {},
         config = function(_, opts)
             require("gitsigns").setup(opts)
 

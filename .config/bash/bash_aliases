@@ -14,12 +14,6 @@ alias gitroot='cd $(git rev-parse --show-toplevel)'
 alias gits='git status'
 alias gitr='git reflog --format="%C(yellow)%h%C(reset) %gs %C(green)%ad%C(reset) %C(blue)[%ar]%C(reset)"'
 
-# Dotfiles repo (bake path into alias)
-dotfiles_dir="$HOME/.myconfig"
-alias conf="$(echo "git --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
-alias confs='conf status'
-alias lazyconf="$(echo "lazygit --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
-
 # mm specific
 alias cfmt='/home/sbeer/dev/cpp-components/templates/clang_format_check/clang-format-check.sh'
 conanls() {

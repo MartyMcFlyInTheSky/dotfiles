@@ -115,7 +115,12 @@ fi
 
 # Add git branch if it's present to PS1
 __parse_git_branch() {
-	git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1/'
+    if [[ "$(git rev-parse --show-toplevel)" == "$HOME" ]]; then
+        local icon='' # is managed by dotfiles
+    else
+        local icon=''
+    fi
+	git branch 2>/dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/ $icon \1/"
 }
 
 # Right-aligned clock
@@ -264,10 +269,6 @@ fi
 if [ -f "$MY_HOME/.config/bash/bash_completions" ]; then
 	. "$MY_HOME/.config/bash/bash_completions"
 fi
-
-# Extend paths for scripts and binaries
-export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
-
 
 # Conda init for current shell depending on if we're in remote or local context
 if [[ -n "${SSH_CONNECTION}" ]]; then
