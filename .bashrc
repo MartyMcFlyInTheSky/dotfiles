@@ -253,16 +253,16 @@ eval "$(fzf --bash)"
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ -f "$MY_HOME/.bash_aliases" ]; then
-	. "$MY_HOME/.bash_aliases"
+if [ -f "$MY_HOME/.config/bash/.bash_aliases" ]; then
+	. "$MY_HOME/.config/bash/.bash_aliases"
 fi
 
-if [ -f "$MY_HOME/.bash_functions.bash" ]; then
-	. "$MY_HOME/.bash_functions.bash"
+if [ -f "$MY_HOME/.config/bash/.bash_functions.bash" ]; then
+	. "$MY_HOME/.config/bash/.bash_functions.bash"
 fi
 
-if [ -f "$MY_HOME/.bash_completions.bash" ]; then
-	. "$MY_HOME/.bash_completions.bash"
+if [ -f "$MY_HOME/.config/bash/.bash_completions.bash" ]; then
+	. "$MY_HOME/.config/bash/.bash_completions.bash"
 fi
 
 # Extend paths for scripts and binaries
