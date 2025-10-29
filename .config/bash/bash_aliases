@@ -102,9 +102,6 @@ bind '"\C-^":"\204cd - >/dev/null\n\201"'
 # bind -x '"\203":"_save_readline; dirstack_prev"'
 # bind '"\ej":"\203\n\201"'
 
-# Better ls -al
-bind -x '"\el":"echo; command ls -alFtr --color=always"'
-
 bind '"\C-x\C-i":"pushd "'
 bind '"\C-x\C-f":"find . -type f -iname \""'
 

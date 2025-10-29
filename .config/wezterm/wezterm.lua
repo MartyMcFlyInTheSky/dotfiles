@@ -273,7 +273,7 @@ wezterm.on('toggle-lazygit', function(window, pane)
         local cwd_uri = pane:get_current_working_dir()
         window:perform_action(
             act.SpawnCommandInNewTab {
-                args = { 'lazysesh' },
+                args = { 'bash', '-lc', 'lazygit' },
                 set_environment_variables = {
                     PWD = cwd_uri.file_path,
                 },
@@ -290,9 +290,9 @@ config.keys = {
     {
         key = 'f', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(1)
     },
-    -- {
-    --     key = 'l', mods = 'ALT', action = wezterm.action.EmitEvent('toggle-lazygit')
-    -- },
+    {
+        key = 'l', mods = 'ALT', action = wezterm.action.EmitEvent('toggle-lazygit')
+    },
     {
         key = 's', mods = 'CTRL', action = wezterm.action.EmitEvent('toggle-nvimsesh')
     },
