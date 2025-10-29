@@ -119,7 +119,7 @@ return {
     keys = {
         -- { "<leader>d", function() configurations() end, mode = "n", desc = "Debugger continue" },
         -- { "<leader>t", function() tasks() end, mode = "n", desc = "Debugger continue" },
-        { "<leader>f", "<CMD>Telescope find_files<CR>", mode = "n", desc = "Find files" },
+        { "<leader>f", function() require('telescope.builtin').git_files() end, mode = "n", desc = "Find files" },
         { "<leader>g", function() require('telescope').extensions.live_grep_args.live_grep_args() end, mode = "n", desc = "Live grep with args" },
     },
     lazy = false,
