@@ -18,43 +18,6 @@ export XDG_CACHE_HOME=$MY_HOME/.cache
 export XDG_STATE_HOME=$MY_HOME/.local/state
 # export XDG_RUNTIME_DIR=$MY_HOME/.local/share # This is needed for wezterm daemon pid file allocation
 
-function vim() {
-    # Set default visual editor to vim/nvim
-    if [[ -n ${SSH_CONNECTION} ]]; then
-        command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc "$@"
-    else
-        command nvim "$@"
-    fi
-}
-export -f vim
-
-export VISUAL="vim"
-export EDITOR="$VISUAL"
-export SYSTEMD_EDITOR="$VISUAL"
-export GIT_EDITOR="$VISUAL"
-
-# History
-# Enable multiline command preservation
-# https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash
-# https://askubuntu.com/questions/1133015/multiline-command-chunks-in-bash-history-into-multiple-lines
-shopt -s cmdhist
-shopt -s lithist
-HISTTIMEFORMAT='%F %T '
-
-if [[ -n ${SSH_USER} ]]; then
-	export HISTFILE="$HOME/.history_$SSH_USER"
-fi
-
-# don't put duplicate lines or lines starting with space in the history.  # See bash(1) for more options
-HISTCONTROL=ignoreboth
-
-# append to the history file, don't overwrite it
-shopt -s histappend
-
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
-
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
@@ -66,7 +29,63 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-# ------ Prompt string ------
+# -----------------------------------------------------------------------------
+# VIM
+# -----------------------------------------------------------------------------
+
+function vim() {
+    # Set default visual editor to vim/nvim
+    # if [[ -n ${SSH_CONNECTION} ]]; then
+    # command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc -c "normal '0" "$@"
+    # command vim -Nu ${XDG_CONFIG_HOME}/vim/vimrc "$@"
+    # else
+    command nvim "$@"
+    # fi
+}
+export -f vim
+
+export VISUAL="nvimsesh"
+export EDITOR="$VISUAL"
+export SYSTEMD_EDITOR="$VISUAL"
+export GIT_EDITOR="$VISUAL"
+
+# -----------------------------------------------------------------------------
+# History
+# -----------------------------------------------------------------------------
+
+# Enable multiline command preservation
+# https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash
+# https://askubuntu.com/questions/1133015/multiline-command-chunks-in-bash-history-into-multiple-lines
+shopt -s cmdhist
+shopt -s lithist
+# append to the history file instead of overwriting
+shopt -s histappend
+
+if [[ -n ${SSH_USER} ]]; then
+	export HISTFILE="$HOME/.history_$SSH_USER"
+fi
+
+# Adapted from https://chemnitzer.linux-tage.de/2025/de/programm/beitrag/296
+# don't put duplicate lines or track lines starting with space in the history.  # See bash(1) for more options
+HISTCONTROL=ignoreboth
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=30000          # default 1000
+HISTFILESIZE=90000      # default 2000
+HISTTIMEFORMAT='(%d.%m.%y) ' # default '%F %T ' 
+HISTIGNORE="?:??:???:git status:gits:bash:clear:exit:man*:*--help"
+
+# Don't use PROMPT_COMMAND since it would interfere with the implicitely used
+# preexec and precmd from wezterm (check /etc/profile.d/wezterm.sh for details)
+__append_reload_history() {
+    history -a # append
+    history -n # load new entries from histfile
+}
+precmd_functions+=(__append_reload_history)
+
+
+# -----------------------------------------------------------------------------
+# Prompt string
+# -----------------------------------------------------------------------------
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -94,36 +113,90 @@ if [ -n "$force_color_prompt" ]; then
 	fi
 fi
 
-# Define the colors and their RGB values
-declare -A colors=(
-	["earth_yellow"]="228;178;103"
-	["ghost_white"]="247;247;253"
-	["dark_coldenrod"]="196;137;49"
-	["field_drab"]="96;74;32"
-)
-
-# Function to generate ANSI escape code for a color
-get_color_txt() {
-	local color_name=$1
-	local rgb=${colors[$color_name]}
-	echo -ne "\[\e[38;2;${rgb}m\]"
-}
-
-# Reset color
-color_reset='\[\e[0m\]'
-
 # Add git branch if it's present to PS1
-parse_git_branch() {
+__parse_git_branch() {
 	git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1/'
 }
 
+# Right-aligned clock
+__rclock() {
+  # what to show (plain text length matters)
+  local template=$1
+  local text=$2
+
+  # terminal width; Bash keeps $COLUMNS up to date on resize
+  local cols=${COLUMNS:-$(tput cols)}
+
+  # position: last column minus visible length of TEXT (no color)
+  local col=$(( cols - ${#text} + 1 ))
+  (( col < 1 )) && col=1
+
+  # save cursor, move to target column in current row, print, restore cursor
+  local text_colored=$(printf "$template" "$text")
+  printf '\e7\e[%dG%s\e8' "$col" "$text_colored"
+}
+
+__fg_rgb() { printf '\[\e[38;2;%d;%d;%dm\]' "$1" "$2" "$3"; }  # R G B
+__bg_rgb() { printf '\[\e[48;2;%d;%d;%dm\]' "$1" "$2" "$3"; }
+__rst()    { printf '\[\e[0m\]'; }
+
+# Static color palette
+__c_earth_yellow="$(__fg_rgb 228 178 103)"
+__c_ghost_white="$(__fg_rgb 247 247 253)"
+__c_dark_coldenrod="$(__fg_rgb 196 137 49)"
+
+__crst="$(__rst)"
+__c_error=(176 63 81)
+__c_topaz=(65 224 209)
+__c_dark_slate_blue=(0 54 82)
+__c_light_yellow_green=(222 253 131)
+__c_field_drab=(96 74 32)
+__c_gray=(128 128 128)
+
+# Static elements
+__ps_rclock="$(__fg_rgb ${__c_gray[@]})%s${__crst}"
+__ps_pyvenv="\e[7m$(__fg_rgb ${__c_topaz[@]})%s\e[27m${__crst}"
+__ps_arrwx="$(__fg_rgb ${__c_topaz[@]})$(__bg_rgb ${__c_dark_slate_blue[@]})${__crst}"
+__ps_cwd1="$(__fg_rgb 255 255 255)$(__bg_rgb ${__c_dark_slate_blue[@]}) \w ${__crst}"
+__ps_cwd2="$(__fg_rgb ${__c_light_yellow_green[@]})$(__bg_rgb ${__c_dark_slate_blue[@]}) \w ${__crst}"
+__ps_arrwxx="$(__fg_rgb ${__c_dark_slate_blue[@]})${__crst}"
+__ps_branch="$(__fg_rgb ${__c_gray[@]})%s ${__crst}"
+__ps_prompt1="$(__fg_rgb ${__c_light_yellow_green[@]})  ${__crst}"
+__ps_prompt2="$(__fg_rgb ${__c_error[@]})  ${__crst}"
+
+__evaluate_ps1() {
+    local exitcode=$?
+
+    # PS1 dynamic elements
+
+    local rclock="$(__rclock "$__ps_rclock" "$(date '+%H:%M:%S')")"   # change format if you like
+
+    # Redefine prompt color if last command failed
+    if [[ "$exitcode" != 0 ]]; then
+        local prompt=$__ps_prompt2
+    else
+        local prompt=$__ps_prompt1
+    fi
+
+    local pyvenv=$(printf "$__ps_pyvenv" "${VIRTUAL_ENV_PROMPT+" $VIRTUAL_ENV_PROMPT "}")
+
+    # Make projects in ~/dev visually pop
+    if [[ "$(dirname "$PWD")" == ~/dev ]]; then
+        local cwd=$__ps_cwd2
+    else
+        local cwd=$__ps_cwd1
+    fi
+
+    local branch="$(printf "$__ps_branch" "$(__parse_git_branch)")"
+
+    PS1="${rclock}${pyvenv}${__ps_arrwx}${cwd}${__ps_arrwxx}${branch}\n${prompt}"
+}
+
+
 if [ "$color_prompt" = yes ]; then
-	PS1='${debian_chroot:+($debian_chroot)}'
-	PS1+="$(get_color_txt earth_yellow)"'\u@\h'"${color_reset}:"
-	PS1+="$(get_color_txt ghost_white)"'\w'"${color_reset}"
-	PS1+="$(get_color_txt field_drab)"'$(parse_git_branch)'"${color_reset}"
-	PS1+="\n$(get_color_txt earth_yellow)"' \$'"${color_reset} "
+    precmd_functions+=(__evaluate_ps1)
 else
+    # static
 	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(parse_git_branch)\$ '
 fi
 unset color_prompt force_color_prompt
@@ -150,6 +223,32 @@ if ! shopt -oq posix; then
 	fi
 fi
 
+
+# zoxide integration
+eval "$(zoxide init bash)"
+
+# fzf integration
+
+export FZF_DEFAULT_OPTS="
+--style minimal
+--bind 'ctrl-/:change-preview-window(down|hidden|)'
+--bind 'ctrl-d:preview-down,ctrl-u:preview-up'"
+
+# export FZF_CTRL_T_OPTS="
+# --walker-skip .git,node_modules,target
+# --preview 'if file {} | grep -i 'text'; then head -100 {}; fi'
+# --multi"
+
+export FZF_ALT_C_OPTS="
+--walker-skip .git,node_modules,target
+--preview 'tree -C -L 2 {}'"
+
+eval "$(fzf --bash)"
+
+# wezterm integration
+# (enabled by default by /etc/profile.d/wezterm.sh)
+
+
 # Alias definitions.
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
@@ -168,28 +267,6 @@ fi
 
 # Extend paths for scripts and binaries
 export PATH=$MY_HOME/.local/scripts/:$MY_HOME/.local/bin:$PATH
-
-# Install zoxide
-eval "$(zoxide init bash)"
-
-
-# Setup fzf integration
-
-export FZF_DEFAULT_OPTS="
---style minimal
---bind 'ctrl-/:change-preview-window(down|hidden|)'
---bind 'ctrl-d:preview-down,ctrl-u:preview-up'"
-
-export FZF_CTRL_T_OPTS="
---walker-skip .git,node_modules,target
---preview 'if file {} | grep -i 'text'; then head -100 {}; fi'
---multi"
-
-export FZF_ALT_C_OPTS="
---walker-skip .git,node_modules,target
---preview 'tree -C -L 2 {}'"
-
-eval "$(fzf --bash)"
 
 
 # Conda init for current shell depending on if we're in remote or local context
@@ -217,23 +294,11 @@ else
     # Disable software flow control XON/XOFF
     stty -ixon
 
-	# >>> conda initialize >>>
-	# !! Contents within this block are managed by 'conda init' !!
-	__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
-	if [ $? -eq 0 ]; then
-		eval "$__conda_setup"
-	else
-		if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
-			. "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
-		else
-			export PATH="/home/sbeer/anaconda3/bin:$PATH"
-		fi
-	fi
-	unset __conda_setup
-	# <<< conda initialize <<<
+    # Disable CAPSLOCK, remap to VoidSymbol
+    setxkbmap -option caps:none
 
 	ssh-add ~/.ssh/private_github
-	ssh-add ~/.ssh/mm_gitlab_and_servers
+	ssh-add ~/.ssh/mm_gitlab
 	ssh-add ~/.ssh/gitlab_private
 
 	export PATH="$PATH:/opt/nvim-linux64/bin"
@@ -243,7 +308,8 @@ else
 	# Source nomad environment
 	source /home/sbeer/dev/nomad-config/.envrc
 
-	export NVM_DIR="$HOME/.config/nvm"
-	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-	[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+    # Source node manager
+    export NVM_DIR="$HOME/.config/nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 fi

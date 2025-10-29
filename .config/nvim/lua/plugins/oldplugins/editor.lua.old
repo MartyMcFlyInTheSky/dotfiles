@@ -1,0 +1,55 @@
+return {
+    -- Undotree
+    {
+        'mbbill/undotree',
+        keys = {
+            { '<leader>ut', vim.cmd.UndotreeToggle, { desc = "Toggle undotree" } }
+        }
+    },
+    {
+        "lukas-reineke/indent-blankline.nvim",
+        main = "ibl",
+        opts = {},
+        lazy = false,
+    },
+    {
+        'windwp/nvim-autopairs',
+        opts = {},
+        event = "InsertEnter",
+    },
+    -- rainbow parens
+    {
+        "HiPhish/rainbow-delimiters.nvim",
+        config = function()
+            local rainbow = require('rainbow-delimiters')
+
+            return {
+                strategy = {
+                    -- Use global strategy by default
+                    [''] = rainbow.strategy['global'],
+                },
+                query = {
+                    -- Use parentheses by default
+                    [''] = 'rainbow-delimiters',
+                    -- Use blocks for Lua
+                    lua = 'rainbow-blocks',
+                }
+            }
+        end,
+        event = "BufRead",
+    },
+    {
+        'Wansmer/treesj',
+        dependencies = {
+            'nvim-treesitter/nvim-treesitter',
+        },
+        opts = {
+            use_default_keymaps = false,
+        },
+        keys = {
+            { "gj", function() require('treesj').split() end, { desc = "Split treesitter aware" } },
+            { "gJ", function() require('treesj').join() end,  { desc = "Join treesitter aware" } },
+        },
+        cmd = { "TSJToggle", "TSJoin", "TSSplit" },
+    }
+}

@@ -1,0 +1,9 @@
+return {
+    "vscolor.nvim",
+    dir = "~/.vim/vscolor.nvim",
+    lazy = false,
+	config = function()
+		-- load the colorscheme here
+		vim.cmd([[colorscheme vscolor]])
+	end,
+}

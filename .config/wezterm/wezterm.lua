@@ -1,16 +1,28 @@
 local wezterm = require 'wezterm'
 local act = wezterm.action
 local config = {}
+local io = require('io')
+local os = require('os')
 
 local mux = wezterm.mux
 
 local current_domain = mux.get_domain()
 
-if current_domain then
-    wezterm.log_info("WezTerm is running in a mux domain: " .. current_domain:name())
-else
-    wezterm.log_info("WezTerm is not running in a mux domain.")
-end
+-- if current_domain then
+--     wezterm.log_info("WezTerm is running in a mux domain: " .. current_domain:name())
+-- else
+--     wezterm.log_info("WezTerm is not running in a mux domain.")
+-- end
+
+-- For mux client panes: Display number of elapsed milliseconds since
+-- the most recent response from the multiplexer server.
+-- wezterm.on('update-status', function(window, pane)
+--   local meta = pane:get_metadata() or {}
+--   if meta.is_tardy then
+--     local secs = meta.since_last_response_ms / 1000.0
+--     window:set_right_status(string.format('tardy: %5.1fs⏳', secs))
+--   end
+-- end)
 
 -- -- Assuming you have LuaFileSystem (lfs) installed
 -- local lfs = require("lfs")
@@ -42,15 +54,16 @@ end
 --
 -- Populate ssh_domains from files found in adjacent folder
 --
-config.ssh_domains = {}
+-- config.ssh_domains = {}
+config.ssh_domains = wezterm.default_ssh_domains()
 
-wezterm.log_info("Loading domain files..:")
-local other_file = require("ssh_domains")
-for _, domain in ipairs(other_file.ssh_domains) do
-    table.insert(config.ssh_domains, domain)
-end
-wezterm.log_info("Loaded the following ssh domains:")
-wezterm.log_info(config.ssh_domains)
+-- wezterm.log_info("Loading domain files..:")
+-- local other_file = require("ssh_domains")
+-- for _, domain in ipairs(other_file.ssh_domains) do
+--     table.insert(config.ssh_domains, domain)
+-- end
+-- wezterm.log_info("Loaded the following ssh domains:")
+-- wezterm.log_info(config.ssh_domains)
 
 --
 --
@@ -83,10 +96,11 @@ config.leader = {
 
 local function is_vim(pane)
     -- this is set by the smart-splits plugin, and unset on ExitPre in Neovim
+    wezterm.log_info("is_vim called, IS_NVIM =" .. (pane:get_user_vars().IS_NVIM or "nil"))
     return pane:get_user_vars().IS_NVIM == 'true'
 end
 
-local function split_pane(key, direction)
+local function split_pane_conditional(key, direction)
     return {
         key = key,
         mods = 'CTRL|SHIFT',
@@ -111,7 +125,7 @@ local function split_pane(key, direction)
 end
 
 
-local function focus_pane(key, direction)
+local function focus_pane_conditional(key, direction)
     return {
         key = key,
         mods = 'CTRL',
@@ -127,6 +141,16 @@ local function focus_pane(key, direction)
             end
         end),
     }
+end
+
+local function send_string_if_vim(string)
+    return wezterm.action_callback(function(win, pane)
+        wezterm.log_info("Checking if current pane holds vim..")
+        if is_vim(pane) then
+            wezterm.log_info("current pane holds vim, sending keys..")
+            win:perform_action(wezterm.action.SendString(string), pane)
+        end
+    end)
 end
 
 
@@ -152,26 +176,152 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
   end
 end)
 
+
+
+local MOD = {
+  SHIFT = 0x01,
+  ALT   = 0x02,
+  CTRL  = 0x04,
+  SUPER = 0x08,
+}
+
+--- Send a CSI-u (“fixterms”) escape for an ASCII key with modifiers (ESC "[" <codepoint> ";" <modifier_mask+1> "u")
+--- @param mods string  Pipe-delimited list of modifiers, case-insensitive, whitespace allowed.
+--- @param key  string  Single ASCII character; its byte value (string.byte) becomes the codepoint.
+--- @return any         A `wezterm.action.SendString` action that emits the CSI-u bytes when invoked.
+function SendFixterm(mods, key)
+    -- mods are either SHIFT ALT CTRL, key is in ascii range
+
+    -- Parse mod
+    local mask = 0
+    for part in mods:gmatch("[^|]+") do
+        local tok = part:match("^%s*(.-)%s*$"):upper()  -- trim and uppercase
+        local flag = MOD[tok]
+        assert(flag, ("unknown modifier: %s"):format(tok))
+        mask = mask | flag
+    end
+
+    -- Assemble fixterm sequence
+    local nr  = key:byte()
+    local str = ("\x1b[%d;%du"):format(nr, mask + 1)
+
+    -- Return bind
+    return wezterm.action.SendString(str)
+end
+
+
+wezterm.on('toggle-nvimsesh', function(window, pane)
+    if is_vim(pane) then
+        wezterm.log_info("current pane holds vim, sending keys..")
+        window:perform_action(act.SendKey({ key='s', mods='CTRL' }), pane)
+    else
+        local cwd_uri = pane:get_current_working_dir()
+        window:perform_action(
+            act.SpawnCommandInNewTab {
+                args = { 'bash', '-lc', 'nvimsesh'},
+                -- Since wezterm somehow resolves symlinks (see https://github.com/wezterm/wezterm/issues/7311)
+                -- this is required to keep track of the unresolved paths
+                set_environment_variables = {
+                    PWD = cwd_uri.file_path,
+                },
+            },
+            pane
+        )
+    end
+end)
+
+wezterm.on('toggle-nvimsesh-last-out', function(window, pane)
+    if is_vim(pane) then
+        window:perform_action(act.SendKey({ key='e', mods='CTRL' }), pane)
+    else
+        -- Find all Output zones; the last one is the last command's output
+        local zones = pane:get_semantic_zones("Output")
+        if not zones or #zones == 0 then
+            window:toast_notification('WezTerm', 'No command output zone found', nil, 3000)
+            return
+        end
+        local last = zones[#zones]
+        local text = pane:get_text_from_semantic_zone(last)
+
+        -- Create a temporary file to pass to vim
+        local name = os.tmpname()
+        local f = io.open(name, 'w+')
+        f:write(text)
+        f:flush()
+        f:close()
+
+        -- Open a new window running vim and tell it to open the file
+        local cwd_uri = pane:get_current_working_dir()
+        window:perform_action(
+            act.SpawnCommandInNewTab {
+                args = { 'bash', '-lc', 'nvimsesh', name },
+                set_environment_variables = {
+                    PWD = cwd_uri.file_path,
+                },
+            },
+            pane
+        )
+    end
+end)
+
+wezterm.on('toggle-lazygit', function(window, pane)
+    local curr_app = pane:get_foreground_process_name():match("([^/]+)$")
+    if curr_app == 'lazygit' then
+        window:perform_action(act.SendKey({ key='q' }), pane)
+    else
+        -- window:set_right_status(process_name or "")
+        local cwd_uri = pane:get_current_working_dir()
+        window:perform_action(
+            act.SpawnCommandInNewTab {
+                args = { 'lazysesh' },
+                set_environment_variables = {
+                    PWD = cwd_uri.file_path,
+                },
+            },
+            pane
+        )
+    end
+end)
+
 config.keys = {
+    {
+        key = 'b', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(-1)
+    },
+    {
+        key = 'f', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(1)
+    },
+    -- {
+    --     key = 'l', mods = 'ALT', action = wezterm.action.EmitEvent('toggle-lazygit')
+    -- },
+    {
+        key = 's', mods = 'CTRL', action = wezterm.action.EmitEvent('toggle-nvimsesh')
+    },
+    {
+        key = 's', mods = 'CTRL|SHIFT', action = wezterm.action.EmitEvent('toggle-nvimsesh-last-out')
+    },
     {
         -- Override CTRL-Shift-L with a no-op to disable it
         key = "Enter",
         mods = "ALT",
         action = wezterm.action.DisableDefaultAssignment,
     },
-    -- Ctrl+s / Ctrl+q (XON/XOFF) are deactivated in bash
-    { key = 'q',
-        mods = 'CTRL',
-        action = wezterm.action.CloseCurrentTab { confirm=true },
-    },
     {
-        key = 's',
-        mods = 'CTRL',
+        -- Override CTRL-Shift-L with a no-op to disable it
+        key = "VoidSymbol",
         action = wezterm.action_callback(function(window, pane)
-            pane:move_to_new_window()
-            -- window:perform_action(act.CloseCurrentTab{ confirm=false }, pane)
-        end)
+        mods = "",
+            window:perform_action(wezterm.action.SendString("\x1b[1;7\x00"), pane)
+        end),
     },
+    -- Ctrl+s / Ctrl+q (XON/XOFF) are deactivated in bash
+    -- {
+    --     key = 's',
+    --     mods = 'CTRL',
+    --     action = wezterm.action_callback(function(window, pane)
+    --         pane:move_to_new_window()
+    --         -- window:perform_action(act.CloseCurrentTab{ confirm=false }, pane)
+    --     end)
+    -- },
     -- Close (stuck) ssh session (https://apple.stackexchange.com/questions/35524/what-can-i-do-when-my-ssh-session-is-stuck)
     {
         key = 'k',
@@ -191,6 +341,16 @@ config.keys = {
                 )
             end
         end)
+    },
+    {
+        key = 'u',
+        mods = 'CTRL|SHIFT',
+        action = act.ScrollToPrompt(-1)
+    },
+    {
+        key = 'd',
+        mods = 'CTRL|SHIFT',
+        action = act.ScrollToPrompt(1)
     },
     -- Prompt for a name to use for a new workspace and switch to it.
     -- {
@@ -218,48 +378,120 @@ config.keys = {
     --     },
     -- },
     -- Prev/next tab
-    {
-        key = 'h',
-        mods = 'CTRL',
-        action = wezterm.action.ActivateTabRelative(-1)
-    },
-    {
-        key = 'l',
-        mods = 'CTRL',
-        action = wezterm.action.ActivateTabRelative(1)
-    },
-    {
-        key = 'o',
-        mods = 'CTRL|SHIFT',
-        action = wezterm.action.ShowDebugOverlay
-    },
+--    {
+--        key = 'h',
+--        mods = 'CTRL',
+--        action = wezterm.action.ActivateTabRelative(-1)
+--    },
+--    {
+--        key = 'l',
+--        mods = 'CTRL',
+--        action = wezterm.action.ActivateTabRelative(1)
+--    },
+--    {
+--        key = 'o',
+--        mods = 'CTRL|SHIFT',
+--        action = wezterm.action.ShowDebugOverlay
+--    },
     -- Spawn mux domain
+--    {
+--        key = 'h',
+--        mods = 'CTRL|SHIFT',
+--        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+--    },
+--    {
+--        key = 'l',
+--        mods = 'CTRL|SHIFT',
+--        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+--    },
+    -- Split panes
     {
         key = 'h',
         mods = 'CTRL|SHIFT',
-        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+        action = send_string_if_vim('\x1b[1;6h')
     },
     {
         key = 'l',
         mods = 'CTRL|SHIFT',
-        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+        action = send_string_if_vim('\x1b[1;6l')
     },
-    -- Split panes
-    split_pane('k', 'Up'),
-    split_pane('j', 'Down'),
+    {
+        key = 'k',
+        mods = 'CTRL|SHIFT',
+        action = wezterm.action.SplitPane{
+            direction = 'Up',
+            size = { Percent = 50 },
+        }
+    },
+    {
+        key = 'j',
+        mods = 'CTRL|SHIFT',
+        action = wezterm.action_callback(function(win, pane)
+            wezterm.log_info("Hello from ctrl shift j")
+            win:perform_action({
+                SplitPane = {
+                    direction = 'Down',
+                    size = { Percent = is_vim(pane) and 30 or 50 },
+                }
+            }, pane)
+        end),
+    },
     -- Focus panes
-    focus_pane('j', 'Down'),
-    focus_pane('k', 'Up'),
+    {
+        key = 'h',
+        mods = 'CTRL',
+        action = send_string_if_vim('\x08')
+    },
+    {
+        key = 'l',
+        mods = 'CTRL',
+        action = send_string_if_vim('\x0c')
+    },
+    {
+        key = 'k',
+        mods = 'CTRL',
+        action = wezterm.action.ActivatePaneDirection('Up')
+    },
+    {
+        key = 'j',
+        mods = 'CTRL',
+        action = wezterm.action.ActivatePaneDirection('Down')
+    },
+    -- Properly forward Ctrl+_ for bash undo
+    {
+        key = '-',
+        mods = 'CTRL',
+        action = act.SendKey{ key='_', mods='CTRL' }
+    },
+    -- Forward copy to copy current readline (needs bash integration)
+   {
+       key = "c",
+       mods = "CTRL|SHIFT",
+       action = wezterm.action_callback(function(win, pane)
+           local has_selection = win:get_selection_text_for_pane(pane) ~= ""
+           if has_selection then
+               win:perform_action(act.CopyTo("ClipboardAndPrimarySelection"), pane)
+           else
+               win:perform_action(SendFixterm("CTRL|SHIFT", "c"), pane)
+           end
+       end)
+   }
 }
 
+-- Font settings
 config.font = wezterm.font_with_fallback {
-    'DroidSansMNerdFont',
+    { family = "DroidSansMNerdFont", weight = "Regular" },
     'monospace',
     -- 'Phosphor',
     -- 'Koulen',
     -- 'Poiret One',
 }
-config.font_size = 12.0
+config.font_size = 14.0 -- corresponds to 14 pixels
+config.line_height = 1.05
+config.cell_width = 1.0
+config.freetype_load_target = "HorizontalLcd"   -- alternatives: "Normal", "Light", "Mono", "HorizontalLcd"
+config.freetype_render_target = "HorizontalLcd" -- better subpixel smoothing
+config.freetype_load_flags = "FORCE_AUTOHINT" -- or "DEFAULT" if you like hinting
 
 -- config.color_scheme = 'Dracula'
 config.colors = {
@@ -292,5 +524,7 @@ config.colors = {
         "#e5e5e5", -- bright white
     },
 }
+
+config.enable_tab_bar = false
 
 return config

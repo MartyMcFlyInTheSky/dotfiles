@@ -3,27 +3,34 @@
 # Quick open aliases
 alias ba="vim ~/.bash_aliases"
 alias brc="vim ~/.bashrc"
-alias vk="vim ~/.config/nvim/lua/config/keybindings.lua"
-alias vak="vim ~/.config/vim/keybindings.vim"
-alias vo="vim ~/.config/nvim/lua/config/settings.lua"
-alias wez="vim ~/.config/wezterm/wezterm.lua"
+alias hist="history | tail -20"
+alias hists="history | cut -d ' ' -f 6-"
 
 alias rl="readlink -f"
 alias rp="realpath"
 
 # Git
 alias gitroot='cd $(git rev-parse --show-toplevel)'
+alias gits='git status'
+alias gitr='git reflog --format="%C(yellow)%h%C(reset) %gs %C(green)%ad%C(reset) %C(blue)[%ar]%C(reset)"'
 
 # Dotfiles repo (bake path into alias)
 dotfiles_dir="$HOME/.myconfig"
-alias dot="$(echo "git --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
-alias dotconf="$(echo "vim $dotfiles_dir/config")"
-alias lazydot="$(echo "lazygit --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
+alias conf="$(echo "git --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
+alias confs='conf status'
+alias lazyconf="$(echo "lazygit --git-dir=$dotfiles_dir --work-tree=/home/sbeer")"
 
 # mm specific
 alias cfmt='/home/sbeer/dev/cpp-components/templates/clang_format_check/clang-format-check.sh'
+conanls() {
+  conan graph info . --format=json 2>/dev/null \
+    | jq -r '.graph.nodes[] | select(.ref and .ref!="conanfile") | .ref' \
+    | sort -u \
+    | awk -F '#' '{ print $1 }'
+}
 
-function lg { ll | grep $1; }
+
+lg() { ll | grep "$1"; }
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -66,45 +73,165 @@ alias cpy='xclip -selection clipboard'
 # ----- Keybindings -----
 
 # Helper commands to work with readline bindings
-_save_command_line() {
+_save_readline() {
     READLINE_LINE_OLD="$READLINE_LINE"
     READLINE_POINT_OLD="$READLINE_POINT"
     READLINE_LINE=
     READLINE_POINT=0
 }
 
-_restore_command_line() {
+bind -x '"\204":"_save_readline"'
+
+_restore_readline() {
     READLINE_LINE="$READLINE_LINE_OLD"
     READLINE_POINT="$READLINE_POINT_OLD"
 }
 
-dirstack_next() {
-    pushd +1 >/dev/null
-}
-
-dirstack_prev() {
-    pushd -0 >/dev/null
-}
-
-# Restore cl is universal
-bind -x '"\201":"_restore_command_line"'
+bind -x '"\201":"_restore_readline"'
 
 # Go up one directory
-bind -x '"\204":"_save_command_line; cd .."'
-bind '"\eh":"\204\n\201"'
+bind '"\eh":"\204cd ..\n\201"'
+
+# Go to previous directory
+bind '"\C-^":"\204cd - >/dev/null\n\201"'
+
 # Rotate pushed directories
-bind -x '"\202":"_save_command_line; dirstack_next"'
-bind '"\ek":"\202\n\201"'
-bind -x '"\203":"_save_command_line; dirstack_prev"'
-bind '"\ej":"\203\n\201"'
+# dirstack_next() {
+#     pushd +1 >/dev/null
+# }
+#
+# dirstack_prev() {
+#     pushd -0 >/dev/null
+# }
+# bind -x '"\202":"_save_readline; dirstack_next"'
+# bind '"\ek":"\202\n\201"'
+# bind -x '"\203":"_save_readline; dirstack_prev"'
+# bind '"\ej":"\203\n\201"'
 
 # Better ls -al
-bind -x '"\el":"echo; command ls -lAtr"'
-
-# Show newest 10 files in a folder
-bind -x '"\eu":"echo; command ls -1U | head"'
-
+bind -x '"\el":"echo; command ls -alFtr --color=always"'
 
 bind '"\C-x\C-i":"pushd "'
 bind '"\C-x\C-f":"find . -type f -iname \""'
 
+# Tune in and out of virtual python envs
+
+toggle_virtual_env() {
+    # Figure out if we're in a virtual env either activate or deactivate it
+    if [[ -n "${VIRTUAL_ENV-}" ]]; then
+        deactivate
+    else
+        if [[ ! -f ".venv/bin/activate" ]]; then
+            return
+        fi
+        . .venv/bin/activate
+    fi
+    # Send siginterrupt
+    kill -SIGINT $(ps -o tpgid= -p $$)
+}
+
+bind -x '"\e[1;7\x00":"toggle_virtual_env"'
+
+
+# Copy current readline
+
+copy_readline_osc52 () {
+  # using OSC 52
+  printf "\e]52;c;%s\a" "$(printf %s "$READLINE_LINE" | openssl base64 -A)"
+}
+
+bind -x '"\e[99;6u": copy_readline_osc52'
+
+
+# Show tasks in current project
+
+_show_proj_tasks() {
+    # Check if .vscode/tasks.json file is available in our CWD
+    local tasks_file="$PWD/.vscode/tasks.json"
+    if [[ ! -f "$tasks_file" ]]; then
+        echo "was nothing"
+        return 
+    fi
+
+    # Start noevim as lua interpreter to extract json
+    local cfg=${XDG_CONFIG_HOME-}
+    if [[ -z "$cfg" ]]; then cfg=~/.config; fi
+    # "$cfg/nvim/init_minimal.lua"
+    mapfile -t lines < <(nvim --headless -u "$cfg/nvim/init.lua" -l /dev/stdin << 'LUA'
+        local m = require('task_reader')
+
+        taskcfg = m.read_tasks_json()
+
+        -- Write selection as first item so we can easily parse it out
+        io.stdout:write(taskcfg.selected .. "\n")
+
+        -- Write all tasks to stdout
+      for i, task in ipairs(taskcfg.tasks) do
+          io.stdout:write(task.command .. "\n") 
+      end
+LUA
+)
+    # Filter out selection
+    first=${lines[0]}
+    rest=$(printf '%s\n' "${lines[@]:1}")   # join tail back into a string
+
+    echo "first = $first"
+    echo "rest = $rest"
+
+    # Find which item should be selected
+    # TODO: Use for loop
+    local pos=1
+    while IFS= read -r line; do
+        if [[ "$line" == "$first" ]]; then
+            break
+        fi
+        ((++pos)) # Use pre-increment to not crash in set -e
+    done <<< "$rest"
+
+    local task
+    task=$(printf "%s\n" "$rest" | fzf --delimiter=, --with-nth='{1}' --sync --bind "start:pos($pos)")
+    
+    # Remember selection
+    nvim --headless -u "$cfg/nvim/init.lua" -l /dev/stdin << LUA
+        local m = require('task_reader')
+
+        m.prepare_launch_task('$task')
+LUA
+
+    # If I press Ctrl-T I want to see a menu in which I can select a task. The task from last time should be
+    # preselected. The same should be possible from within neovim. In the console, the task output should be 
+    # written to the console, in neovim it should be written to a temporary buffer.
+    #
+    # Wezterm integration:
+    # Pressing a keyboard combination like Shift+Ctrl+S will save the last command output to a file and immediately
+    # open vim to that file. Effectively it will open a session like normal + open the command output first
+    #
+    # It's probably smarter to control everything from wezterm, e.g. Ctrl+S will open vim in a new pane, as does Ctrl+E but the later
+    # picks up on the last command output (by forwarding it to vim). Both will use a script called vimsesh that basically execv's to vim -S -i
+    #
+    #
+    #
+    # This means that pressing a button
+    # have command output be written to a temporary file by using a command from wezterm. which is automatically loaded on 'U'
+    # can always be accessed by 'U and in the terminal using ? we can move the current cmd_out.txt also to this file.
+    #
+    # Tasks should be read from the local .vscode as well as the global ~/.vscode/tasks.json file
+    # The local tasks json file should be accessible by 'T -> we probably want to put it in vimrc and check if they're not set since the shada
+    # file loading will take place before the first line of vimscript is executed.
+    # 
+    # Position remembering: Since we combine both .vscode files we can't remember
+    # the position by an index (also because we don't know if the user has altered
+    # the configuratino in the meantime. Also there might be duplicate tasks when
+    # merging the two configurations together, so which one do we select? Or should
+    # deduplicate the tasks (only if they're exactly equivalent i'd say).
+    # >> But what if the labels are different?
+
+    # local task=$(printf "%s\n" "$lines" | fzf --delimiter=$'\0' --accept-nth=1 --preview="echo {2}" --height=10 --layout=reverse --info=inline --border=rounded | cut -d, -f1)
+
+    # Execute that task
+    bash -c "$task"
+}
+
+bind -x '"\C-t":"_show_proj_tasks"'
+
+bind -x '"\e[15~":"ls -al"'

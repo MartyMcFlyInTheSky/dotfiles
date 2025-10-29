@@ -1,89 +1,126 @@
+-- Additional telescope pickers
+
+local pickers = require "telescope.pickers"
+local finders = require "telescope.finders"
+local conf = require("telescope.config").values
+local actions      = require'telescope.actions'
+local action_state = require'telescope.actions.state'
+local previewers   = require'telescope.previewers'
+
+
+local has_dap, dap = pcall(require, 'dap')
+if not has_dap then
+  error('This plugins requires mfussenegger/nvim-dap')
+end
+
+
+-- Pick configurations
+local configurations = function(opts)
+    opts = opts or {}
+
+    local results = {}
+    for lang, configs in pairs(dap.configurations) do
+        if opts.language_filter == nil or opts.language_filter(lang) then
+            for _, config in ipairs(configs) do
+                table.insert(results, config)
+            end
+        end
+    end
+
+    local has_dap_plugin, dap_plugin = pcall(require, 'dap-helpers')
+    local curr_config = dap_plugin.get_debug_config()
+
+    -- Find the previously selected option for potential reselection
+    local curr_selection = 0
+    for i, res in ipairs(results) do
+        if res == curr_config then
+            curr_selection = i
+        end
+    end
+
+    -- Create a picker using defined variables
+    pickers.new(opts, {
+        prompt_title = "Dap Configuration",
+        default_selection_index = curr_selection,
+        finder = finders.new_table {
+            results = results,
+            entry_maker = function(entry)
+                return {
+                    value = entry,
+                    display = entry.type .. ': ' .. entry.name,
+                    ordinal = entry.type .. ': ' .. entry.name,
+                    preview_command = function(entry, bufnr)
+                        local output = vim.split(vim.inspect(entry.value), '\n')
+                        vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, output)
+                    end,
+                }
+            end,
+        },
+        sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+                local selection = action_state.get_selected_entry()
+                actions.close(prompt_bufnr)
+
+                -- Set debug configuration in the dap plugin module if available
+                if has_dap_plugin then
+                    dap_plugin.set_debug_config(selection.value)
+                end
+                
+            end)
+
+            return true
+        end,
+        previewer = previewers.display_content.new(opts)
+    }):find()
+end
+
 return {
-    {
-        "nvim-telescope/telescope.nvim",
-        tag = "0.1.8",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            -- "nvim-telescope/telescope-ui-select.nvim",
-            "nvim-telescope/telescope-dap.nvim",
-            "jvgrootveld/telescope-zoxide",
-            "nvim-telescope/telescope-live-grep-args.nvim",
+    "nvim-telescope/telescope.nvim",
+    dependencies = {
+        -- { 'nvim-telescope/telescope-dap.nvim' },
+        {
+            "nvim-telescope/telescope-live-grep-args.nvim" ,
+            -- This will not install any breaking changes.
+            -- For major updates, this must be adjusted manually.
             version = "^1.0.0",
         },
-        config = function()
-            -- First setup telescope
-            local telescope = require("telescope")
-            local builtin = require("telescope.builtin")
+    },
+    requires = { { "nvim-lua/plenary.nvim" }, },
+    config = function()
+        local telescope = require('telescope')
+        local lga_actions = require("telescope-live-grep-args.actions")
 
-            local lga_actions = require("telescope-live-grep-args.actions")
-            telescope.setup({
-                defaults = {
-                    mappings = {
-                        -- Allow single esc close (https://www.reddit.com/r/neovim/comments/pzxw8h/telescope_quit_on_first_single_esc/)
-                        -- i = {
-                        -- 	["<esc>"] = function() require("telescope.actions").close() end,
-                        -- },
-                    },
-                },
-                extensions = {
-                    -- ["ui-select"] = {
-                    --     function() require("telescope.themes").get_dropdown({}) end,
-                    -- },
-                    zoxide = {
-                        mappings = {
-                            default = {
-                                action = function(selection)
-                                    -- Close curr buffer if it's alpha, then change cwd
-                                    if vim.bo.ft == "alpha" then
-                                        local buffer = vim.api.nvim_get_current_buf()
-                                        vim.api.nvim_buf_delete(buffer, {})
-                                    end
-                                    vim.cmd.cd(selection.path)
-                                end,
-                                after_action = function(selection)
-                                    vim.cmd("Alpha")
-                                end,
-                            },
+        telescope.setup({
+            extensions = {
+                live_grep_args = {
+                    auto_quoting = true, -- enable/disable auto-quoting
+                    -- define mappings, e.g.
+                    mappings = { -- extend mappings
+                        i = {
+                            ["<C-t>"] = lga_actions.quote_prompt(),
+                            ["<C-i>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
+                            -- freeze the current list and start a fuzzy search in the frozen list
+                            ["<C-space>"] = lga_actions.to_fuzzy_refine,
                         },
                     },
-                    live_grep_args = {
-                        auto_quoting = true,
-                        mappings = {
-                            i = {
-                                ["<C-k>"] = lga_actions.quote_prompt(),
-                                ["<C-i>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
-                                -- freeze the current list and start a fuzzy search in the frozen list
-                                ["<C-space>"] = lga_actions.to_fuzzy_refine,
-                            },
-                        }
-                    },
-                },
-            })
-            -- Load the extensions
-            -- telescope.load_extension("ui-select")
-            telescope.load_extension("zoxide")
-            telescope.load_extension("dap")
-            telescope.load_extension("live_grep_args")
-        end,
-        keys = {
-            -- Basic telescope commands
-            { "<C-s>",      "<cmd>Telescope grep_string<cr>",                                               desc = "Grep string" },
-            { "<leader>fo", "<cmd>Telescope oldfiles<cr>",                                                  desc = "List old files" },
-            { "<leader>ff", "<cmd>Telescope find_files<cr>",                                                desc = "Find files" },
-            { "<leader>fd", "<cmd>Telescope dap configurations<cr>",                                        desc = "Get dap configurations" },
-            { "<leader>f?", "<cmd>Telescope help_tags<cr>",                                                 desc = "Explore help tags" },
-            { "<leader>fb", "<cmd>Telescope buffers<cr>",                                                   desc = "List open buffer" },
-            { "<leader>fr", function() require('telescope.builtin').resume() end,                           desc = "Live grep" },
+                    -- ... also accepts theme settings, for example:
+                    -- theme = "dropdown", -- use dropdown theme
+                    -- theme = { }, -- use own theme spec
+                    -- layout_config = { mirror=true }, -- mirror preview pane
+                }
+            }
+        })
 
-            -- Telescope zoxide extension
-            { "<leader>fz", function() require("telescope").extensions.zoxide.list() end,                   desc = "Explore help tags" },
-
-            -- Telescope dap extension
-            { "<leader>fd", "<cmd>Telescope dap configurations<cr>",                                        desc = "Show dap configurations" },
-
-            -- Telescope live grep args extension
-            { "<leader>fg", function() require('telescope').extensions.live_grep_args.live_grep_args() end, desc = "Live grep" },
-        },
-        cmd = { "Telescope" },
+        -- ts.load_extension("dap")
+        telescope.load_extension("live_grep_args")
+    end,
+    -- Dap extensions
+    keys = {
+        -- { "<leader>d", function() configurations() end, mode = "n", desc = "Debugger continue" },
+        -- { "<leader>t", function() tasks() end, mode = "n", desc = "Debugger continue" },
+        { "<leader>f", "<CMD>Telescope find_files<CR>", mode = "n", desc = "Find files" },
+        { "<leader>g", function() require('telescope').extensions.live_grep_args.live_grep_args() end, mode = "n", desc = "Live grep with args" },
     },
+    lazy = false,
 }

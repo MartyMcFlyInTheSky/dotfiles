@@ -1,65 +1,119 @@
-" Set runtimepath to include the config_path and config_path/after
-set runtimepath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+" Set VI compatability mode. Technically not necessary if vim is started with -N (noncompatible) flag
+set nocompatible
 
-if v:version >= 800
-    set packpath=$XDG_CONFIG_HOME/vim,$XDG_CONFIG_HOME/vim/after,$XDG_DATA_HOME/vim,$VIMRUNTIME,$VIM
+" Make vim respect XDG base specs (https://specifications.freedesktop.org/basedir-spec/latest/)
+let config_home = empty($XDG_CONFIG_HOME) ? expand('~/.config') : $XDG_CONFIG_HOME
+let state_home = empty($XDG_STATE_HOME) ? expand('~/.local/state') : $XDG_STATE_HOME
+let data_home = empty($XDG_DATA_HOME) ? expand('~/.local/share') : $XDG_DATA_HOME
+let cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
+
+" Determine xdg stdpaths
+if has('nvim')
+    let stdpath_config = config_home    . '/nvim'
+    let stdpath_state = state_home      . '/nvim'
+    let stdpath_data = data_home        . '/nvim'
+    let stdpath_cache = cache_home      . '/nvim'
+else
+    let stdpath_config = config_home    . '/vim'
+    let stdpath_state = state_home      . '/vim'
+    let stdpath_data = data_home        . '/vim'
+    let stdpath_cache = cache_home      . '/vim'
 endif
 
-" Set the directory for swap files
-set dir=$XDG_DATA_HOME/vim
+call mkdir(stdpath_config, 'p')
+call mkdir(stdpath_state, 'p')
+call mkdir(stdpath_data, 'p')
+call mkdir(stdpath_cache, 'p')
 
-" Set viminfo file location
-let viminfo_dir = expand($XDG_STATE_HOME) . '/vim'
-if !isdirectory(viminfo_dir)
-  " Create the folder using the shell command
-  call system('mkdir -p ' . shellescape(viminfo_dir))
-endif
+" Runtimepath follows xdg-specs
 
-" Set viminfo option with correct formatting
-let viminfo_file = viminfo_dir . '/viminfo'
-exec "set viminfo='1000,n" . shellescape(viminfo_file)
+exec printf('set runtimepath^=%s/vim', config_home)
+exec printf('set runtimepath+=%s/vim/after', config_home)
+exec printf('set runtimepath^=%s/vim', data_home)
+exec printf('set runtimepath+=%s/vim/after', data_home)
+
+" Packpath follows xdg-specs
+
+set packpath&vim " Reset to default
+exec printf('set packpath+=%s/vim', config_home)
+exec printf('set packpath+=%s/vim/after', config_home)
+exec printf('set packpath+=%s/vim', data_home)
+exec printf('set packpath+=%s/vim/after', data_home)
 
 
-" Place .netrwhist in correct folder
-let g:netrw_home=$XDG_CACHE_HOME . '/vim'
+" Set shada/viminfofile to respect xdg-convention
 
-" Set undo directory and enable undo file
-if has("persistent_undo")
-    let &undodir='$XDG_DATA_HOME/vim/undodir'
+" Setup persistent undo
+if has('persistent_undo')
+    " Will be overwritten if a session.vim is loaded later
+    let undodir = stdpath_state . '/undodir'
+    let &undodir = undodir
     set undofile
 endif
 
-" Install plugins if not already installed
-let plugin_dir = expand($XDG_DATA_HOME) . '/vim/plugged'
-if !isdirectory(plugin_dir)
-    autocmd VimEnter * PlugInstall --sync
+" shada/viminfo will work the same, we can steer all options through
+" &viminfo/-file
+let &viminfo      = "'1000"                  " how much to save
+if empty(&viminfofile)
+    let &viminfofile  = stdpath_state . '/main.viminfo'  " where to save
 endif
 
-" Initialize VimPlug with the custom directory
-call plug#begin(plugin_dir)
-" List your plugins here
-Plug 'rose-pine/vim'
 
-call plug#end()
+" Netrw settings
+
+" Place .netrwhist in correct folder
+let g:netrw_home = stdpath_cache
+
+let g:netrw_banner = 0
+let g:netrw_altfile = 0
+
+" Don't save argument list for sessions, otherwise these will override anything passed to
+" nvim -S <sessionfile> <args>
+" NOTE
+set sessionoptions-=arguments
 
 " Set theme if installed
 set background=dark
-silent! colorscheme rosepine
+silent! colorscheme vscolor
 
-" Set line numbers
-set number
+" Vim will display absolute number at cursor and relative numbers otherwise
+" if both settings are set together (https://stackoverflow.com/a/19033976/11770390)
+set relativenumber number
 
-" Set relative line numbers
-set relativenumber
 
-" Set tab width and indentation
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
+" Tabstuff: Spaces only indentation
+" See also https://gist.github.com/LunarLambda/4c444238fb364509b72cfb891979f1dd" 
+"
+" When inserting <Tab> in insert mode, it is expanded to spaces
 set expandtab
+" A tab is 4 spaces
+set tabstop=4
+" Shift by 4 when using indent operations in normal and visual mode (<< / >> / =)
+set shiftwidth=4
+" Amount of spaces to insert or remove on <Tab> / <Backspace> until tabstop is reached
+" (where it will be replaced by an actual <Tab>). Only considered when
+" noexpandtab is set
+set softtabstop=-1
+" Different behavior of <Tab> at line beginning (tabstop) and within
+" (softtabstop) text (e.g. for aligning variables)
+set smarttab
+
+" Automatically indent after special characters (e.g. { )
+set nosmartindent
+" Autoindent new lines
+set noautoindent
+
+
+" Cursorline
+set cursorline
+set cursorlineopt=number
 
 " allow more flexible backspacing
 set backspace=indent,eol,start
+
+" Search options
+set ignorecase
+set smartcase
 
 " Disable line wrapping
 set nowrap
@@ -70,12 +124,9 @@ set noswapfile
 " Disable backup
 set nobackup
 
-
-" Disable highlight search
-set nohlsearch
-
 " Enable incremental search
 set incsearch
+set hlsearch
 
 " Enable 24-bit RGB color in the terminal UI
 if has("termguicolors")
@@ -99,12 +150,25 @@ set updatetime=50
 " Highlight the 80th column
 set colorcolumn=80
 
+" Automatically put abandoned buffers to hidden (neovim default behavior)
+set hidden
+
 " Change style of normal mode vs insert mode cursor
 " (https://stackoverflow.com/questions/6488683/how-to-change-the-cursor-between-normal-and-insert-modes-in-vim)
 let &t_SI = "\e[6 q"
 let &t_EI = "\e[2 q"
 
-" Source additional configuration files
+" Better vert split middle line seperator
+set fillchars+=vert:\│
 
-source $XDG_CONFIG_HOME/vim/keybindings.vim
+" Source additional configuration files
+if !has('nvim')
+    exec printf('source %s/vim/oscyank.vim', config_home .. '/vim')
+endif
+
+exec printf('source %s/vim/keybindings.vim', config_home)
+exec printf('source %s/vim/marks.vim', config_home)
+exec printf('source %s/vim/smart-splits.vim', config_home)
+exec printf('source %s/vim/readline_keys.vim', config_home)
+exec printf('source %s/vim/sessionizer.vim', config_home)
 

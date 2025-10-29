@@ -1,0 +1,8 @@
+return {
+    {
+        -- Puts lua docs inside of neovim, usage example: :help pcall()
+        -- Inspired by tj's tutorial: https://www.youtube.com/watch?v=n4Lp4cV8YR0&t=636s
+        'emiasims/nvim-luaref',
+        lazy = false,
+    },
+}

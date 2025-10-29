@@ -38,5 +38,39 @@ if [ -d "/usr/pgadmin4/bin" ]; then
     export PATH="$PATH:/usr/pgadmin4/bin"
 fi
 
+# Set go paths
+if [ -d "/usr/local/go/bin" ]; then
+    export PATH=$PATH:/usr/local/go/bin
+fi
+
+if [ -n "$(go env GOPATH)" ]; then
+    export PATH="$(go env GOPATH)/bin:$PATH"
+fi
 
 . "$HOME/.cargo/env"
+
+# Read secrets
+if [ -f "$HOME/.bash_secrets" ]; then
+	. "$HOME/.bash_secrets"
+fi
+
+# This takes way shorter than installing the whole nvm environment
+export PATH="/home/sbeer/.config/nvm/versions/node/v22.12.0/bin:$PATH"
+
+# mm
+export SSH_KEY_MM=~/.ssh/mm_gitlab
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/sbeer/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/sbeer/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/sbeer/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/sbeer/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<

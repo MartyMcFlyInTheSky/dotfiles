@@ -1,0 +1,60 @@
+local colors = {
+    vscode_blue = "#0078D4",
+    vscode_blue_selected = "#1F88D9",
+    white = "#FFFFFF",
+    darkgray = "#181818",
+    darkgray_selected = "#343434",
+    lightgray = "#CCCCCC",
+}
+
+local vscolor = {
+    normal = {
+        a = { bg = colors.darkgray_selected, fg = colors.white, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+    insert = {
+        a = { bg = colors.vscode_blue, fg = colors.white, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+    visual = {
+        a = { bg = colors.vscode_blue, fg = colors.white, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+    replace = {
+        a = { bg = colors.vscode_blue, fg = colors.lightgray, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+    command = {
+        a = { bg = colors.vscode_blue_selected, fg = colors.lightgray, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+    inactive = {
+        a = { bg = colors.darkgray, fg = colors.lightgray, gui = "bold" },
+        b = { bg = colors.darkgray, fg = colors.lightgray },
+        c = { bg = colors.darkgray, fg = colors.lightgray },
+    },
+}
+
+return {
+    {
+        "nvim-lualine/lualine.nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        opts = function()
+            local custom_gruvbox = require("lualine.themes.gruvbox")
+
+            custom_gruvbox.normal.c.bg = "#112233"
+
+            return {
+                options = {
+                    theme = vscolor,
+                },
+            }
+        end,
+        lazy = false,
+    },
+}

@@ -43,6 +43,7 @@ __cmp_exec() {
     fi
 }
 
+# Deal with empty completion differently
 complete -F __cmp_exec -E
 
 # The -I specifier can only be used from bash 5.2 (https://stackoverflow.com/questions/79025685/bash-complete-i-invalid-option/79025820)

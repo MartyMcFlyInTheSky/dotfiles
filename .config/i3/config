@@ -70,6 +70,9 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
+# bindsym --floating button2 move position mouse
+# <MiddleMouse>
+
 # start a terminal
 bindsym $mod+Return exec i3-sensible-terminal
 
@@ -245,6 +248,17 @@ workspace $ws8 output HDMI-1
 workspace $ws9 output HDMI-1
 workspace $ws10 output HDMI-1
 
+
+# Looks
+
+# Hide title bar
+default_border pixel 3
+
+#                       border      background      text        indicator     child_border
+client.focused          #DEFD83     #88c0d0     	#ffffff 	#88c0d0       #DEFD83
+client.focused_inactive #444444     #2e3440     	#cccccc 	#2e3440       #2e3440
+client.unfocused        #333333     #1e1e1e     	#aaaaaa 	#1e1e1e       #1e1e1e
+client.urgent           #900000     #900000     	#ffffff 	#900000       #900000
 
 # Apps that start floating
 for_window [class="ksnip"] floating enable
