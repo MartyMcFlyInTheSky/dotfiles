@@ -1,0 +1,2 @@
+#!/bin/sh
+feh --no-fehbg --bg-fill '/home/sbeer/.wallpaper/bachstelze_wallpaper.jpg' '/home/sbeer/.wallpaper/saseo.jpeg' '/home/sbeer/.wallpaper/alpstein.jpg' '/home/sbeer/.wallpaper/alpstein.png' 

@@ -1,0 +1,10 @@
+Index:
+  Background: Build        # or Skip to reduce CPU
+  StandardLibrary: Yes
+
+ClangTidy:
+  Add: modernize-*,performance-*
+  Remove: readability-magic-numbers
+  CheckOptions:
+    readability-identifier-naming.VariableCase: lower_case
+

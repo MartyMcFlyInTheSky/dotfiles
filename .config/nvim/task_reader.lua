@@ -225,14 +225,32 @@ end
 -- end
 --
 
-local pickers = require "telescope.pickers"
-local finders = require "telescope.finders"
-local conf = require("telescope.config").values
-local actions      = require'telescope.actions'
-local action_state = require'telescope.actions.state'
-local previewers   = require'telescope.previewers'
+local function telescope_modules()
+    local ok_pick, pickers = pcall(require, "telescope.pickers")
+    local ok_find, finders = pcall(require, "telescope.finders")
+    local ok_conf, conf_mod = pcall(require, "telescope.config")
+    local ok_actions, actions = pcall(require, "telescope.actions")
+    local ok_state, action_state = pcall(require, "telescope.actions.state")
+
+    if not (ok_pick and ok_find and ok_conf and ok_actions and ok_state) then
+        vim.notify("Telescope is not available yet", vim.log.levels.WARN)
+        return nil
+    end
+
+    return {
+        pickers = pickers,
+        finders = finders,
+        conf = conf_mod.values,
+        actions = actions,
+        action_state = action_state,
+    }
+end
 
 function M.show_proj_tasks()
+    local telescope = telescope_modules()
+    if not telescope then
+        return
+    end
     vim.print("Hello")
 
     local taskcfg = M.read_tasks_json()
@@ -250,9 +268,9 @@ function M.show_proj_tasks()
     end
 
     local opts={}
-    pickers.new(opts, {
+    telescope.pickers.new(opts, {
         promt_title = "Project tasks",
-        finder = finders.new_table({
+        finder = telescope.finders.new_table({
             results = taskcfg.tasks,
             entry_maker = function(task)
                 return {
@@ -262,11 +280,11 @@ function M.show_proj_tasks()
                 }
             end,
         }),
-        sorter = conf.generic_sorter(opts),
+        sorter = telescope.conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
-            actions.select_default:replace(function()
-                local selection = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
+            telescope.actions.select_default:replace(function()
+                local selection = telescope.action_state.get_selected_entry()
+                telescope.actions.close(prompt_bufnr)
 
                 local task = selection.value
 

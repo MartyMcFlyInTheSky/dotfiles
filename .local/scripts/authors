@@ -1,0 +1,46 @@
+#!/bin/bash
+
+FILE="$1"
+
+if [ ! -f "$FILE" ]; then
+    echo "Usage: authors <filename>"
+    exit 1
+fi
+
+# Get authors from git blame
+declare -A author_counts
+total=0
+
+while read -r line; do
+    if [[ "$line" =~ ^author\ (.+) ]]; then
+        author="${BASH_REMATCH[1]}"
+        author_counts["$author"]=$((author_counts["$author"] + 1))
+        total=$((total + 1))
+    fi
+done < <(git blame --line-porcelain "$FILE")
+
+# Calculate and sort percentages
+printf "\nAuthors for %s:\n" "$FILE"
+declare -A percentages
+for author in "${!author_counts[@]}"; do
+    count=${author_counts[$author]}
+    percent=$(awk "BEGIN { printf \"%.2f\", ($count/$total)*100 }")
+    percentages["$author"]=$percent
+done
+
+# Filter and display
+others_pct=0
+for author in "${!percentages[@]}"; do
+    pct=${percentages[$author]}
+    pct_num=$(awk "BEGIN {print ($pct >= 5)}")
+    if [ "$pct_num" -eq 1 ]; then
+        printf "%-20s %6s%%\n" "$author" "$pct"
+    else
+        others_pct=$(awk "BEGIN { printf \"%.2f\", $others_pct + $pct }")
+    fi
+done
+
+if (( $(echo "$others_pct > 0" | bc -l) )); then
+    printf "%-20s %6s%%\n" "others..." "$others_pct"
+fi
+

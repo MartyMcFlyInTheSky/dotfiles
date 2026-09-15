@@ -1,4 +1,20 @@
 promptToReturnFromSubprocess: false
 os:
-  editPreset: "nvim"
-
+  edit: "nvr_worktree --remote-tab-silent {{filename}}"
+  editAtLine: "nvr_worktree --remote-tab-silent +{{line}} {{filename}}"
+  editAtLineAndWait: "nvr_worktree --remote-tab-wait-silent +{{line}} {{filename}}"
+  openDirInEditor: "nvr_worktree --remote-tab-silent {{dir}}"
+  editInTerminal: true
+keybinding:
+  commits:
+    moveDownCommit: <c-n>
+    moveUpCommit: <c-p>
+customCommands:
+  - key: "t"
+    command: "git checkout --theirs {{ .SelectedFile.Name }}"
+    context: "files"
+    description: "take theirs"
+  - key: "o"
+    command: "git checkout --ours {{ .SelectedFile.Name }}"
+    context: "files"
+    description: "take ours"

@@ -19,13 +19,14 @@ end
 
 return {
     cmd = { "pyright-langserver", "--stdio" },
-    root_markers = { { "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "pyrightconfig.json" }, ".git" },
+    root_markers = { ".git" },
     filetypes = { 'python' },
     settings = {
         python = {
             analysis = {
+                -- extraPaths = { "libs", "apps" }, -- crucial for monorepo imports
                 autoSearchPaths = true,
-                diagnosticMode = "openFilesOnly",
+                diagnosticMode = "workspace",
                 useLibraryCodeForTypes = true
             }
         }
@@ -49,5 +50,6 @@ return {
             nargs = 1,
             complete = 'file',
         })
+
     end,
 }

@@ -1,13 +1,13 @@
-P = function(v)
+_G.P = function(v)
     print(vim.inspect(v))
     return v
 end
 
-RELOAD = function(...)
+_G.RELOAD = function(...)
     return require("plenary.reload").reload_module(...)
 end
 
-R = function(name)
+_G.R = function(name)
     RELOAD(name)
     return require(name)
 end

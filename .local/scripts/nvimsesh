@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Opens nvim session
+
+# notify-send "nvimsesh started, @ = $@"
+#
+# Check if sessionfile already exists for neovim
+
+# notify-send "nvimsesh pwd = ${PWD}"
+
+export NVIMSESH=1
+
+
+if command -v nvim >/dev/null 2>&1; then
+    editor="nvim"
+else
+    editor="vim"
+fi
+
+sdir="$PWD/.nvim"
+if [[ ! -d "${sdir}" ]]; then
+    exec "${editor}" "$@"
+fi
+
+export XDG_STATE_HOME="${sdir}"
+
+session_file="${sdir}/session.vim"
+if [[ "${editor}" == "nvim" ]]; then
+    info_file="${sdir}/session.shada"
+else
+    info_file="${sdir}/session.viminfo"
+fi
+
+
+if [[ -f "${session_file}" ]]; then
+    exec "${editor}" -S "${session_file}" -i "${info_file}" "$@"
+else
+    exec "${editor}" -i "${info_file}" "$@"
+fi

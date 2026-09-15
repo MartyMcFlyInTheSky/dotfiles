@@ -7,70 +7,62 @@ let state_home = empty($XDG_STATE_HOME) ? expand('~/.local/state') : $XDG_STATE_
 let data_home = empty($XDG_DATA_HOME) ? expand('~/.local/share') : $XDG_DATA_HOME
 let cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
 
-" Determine xdg stdpaths
-if has('nvim')
-    let stdpath_config = config_home    . '/nvim'
-    let stdpath_state = state_home      . '/nvim'
-    let stdpath_data = data_home        . '/nvim'
-    let stdpath_cache = cache_home      . '/nvim'
-else
+" Coerce older Vim versions to follow XDG paths.
+if !has('nvim')
     let stdpath_config = config_home    . '/vim'
     let stdpath_state = state_home      . '/vim'
     let stdpath_data = data_home        . '/vim'
     let stdpath_cache = cache_home      . '/vim'
+
+    " Runtimepath follows xdg-specs
+    exec printf('set runtimepath^=%s/vim', config_home)
+    exec printf('set runtimepath+=%s/vim/after', config_home)
+    exec printf('set runtimepath^=%s/vim', data_home)
+    exec printf('set runtimepath+=%s/vim/after', data_home)
+
+    " Packpath follows xdg-specs
+    set packpath&vim " Reset to default
+    exec printf('set packpath+=%s/vim', config_home)
+    exec printf('set packpath+=%s/vim/after', config_home)
+    exec printf('set packpath+=%s/vim', data_home)
+    exec printf('set packpath+=%s/vim/after', data_home)
+
+    " Set shada/viminfofile to respect xdg-convention
+    " Setup persistent undo
+    if has('persistent_undo')
+        " Will be overwritten if a session.vim is loaded later
+        let &undodir = stdpath_state . '/undo//'
+        set undofile
+    endif
+
+    let &directory = stdpath_state . '/swap//'
+    let &backupdir = stdpath_state . '/backup//'
+    let &viewdir = stdpath_state . '/view//'
+
+    " shada/viminfo will work the same, we can steer all options through
+    " &viminfo/-file
+    let &viminfo      = "'1000"                  " how much to save
+    if empty(&viminfofile)
+        let &viminfofile  = stdpath_state . '/main.viminfo'  " where to save
+    endif
+
+    " Netrw settings
+    " Place .netrwhist in correct folder
+    let g:netrw_home = stdpath_cache
 endif
-
-call mkdir(stdpath_config, 'p')
-call mkdir(stdpath_state, 'p')
-call mkdir(stdpath_data, 'p')
-call mkdir(stdpath_cache, 'p')
-
-" Runtimepath follows xdg-specs
-
-exec printf('set runtimepath^=%s/vim', config_home)
-exec printf('set runtimepath+=%s/vim/after', config_home)
-exec printf('set runtimepath^=%s/vim', data_home)
-exec printf('set runtimepath+=%s/vim/after', data_home)
-
-" Packpath follows xdg-specs
-
-set packpath&vim " Reset to default
-exec printf('set packpath+=%s/vim', config_home)
-exec printf('set packpath+=%s/vim/after', config_home)
-exec printf('set packpath+=%s/vim', data_home)
-exec printf('set packpath+=%s/vim/after', data_home)
-
-
-" Set shada/viminfofile to respect xdg-convention
-
-" Setup persistent undo
-if has('persistent_undo')
-    " Will be overwritten if a session.vim is loaded later
-    let undodir = stdpath_state . '/undodir'
-    let &undodir = undodir
-    set undofile
-endif
-
-" shada/viminfo will work the same, we can steer all options through
-" &viminfo/-file
-let &viminfo      = "'1000"                  " how much to save
-if empty(&viminfofile)
-    let &viminfofile  = stdpath_state . '/main.viminfo'  " where to save
-endif
-
-
-" Netrw settings
-
-" Place .netrwhist in correct folder
-let g:netrw_home = stdpath_cache
 
 let g:netrw_banner = 0
 let g:netrw_altfile = 0
 
-" Don't save argument list for sessions, otherwise these will override anything passed to
-" nvim -S <sessionfile> <args>
-" NOTE
-set sessionoptions-=arguments
+" Session options (keep layout, drop extra buffers)
+set sessionoptions=blank,curdir,folds,tabpages,winsize
+
+if exists('$NVIMSESH') && $NVIMSESH ==# '1'
+  augroup NVIMSESHWarning
+    autocmd!
+    autocmd VimEnter * ++once if !isdirectory(expand('$PWD') . '/.nvim') | echohl WarningMsg | echom 'nvimsesh: no .nvim directory found' | echohl None | endif
+  augroup END
+endif
 
 " Set theme if installed
 set background=dark
@@ -78,7 +70,7 @@ silent! colorscheme vscolor
 
 " Vim will display absolute number at cursor and relative numbers otherwise
 " if both settings are set together (https://stackoverflow.com/a/19033976/11770390)
-set relativenumber number
+set nu rnu
 
 
 " Tabstuff: Spaces only indentation
@@ -136,6 +128,12 @@ endif
 " Set the number of lines to keep above and below the cursor
 set scrolloff=8
 
+" Number of lines to keep left and right from cursor
+"set sidescrolloff=20
+
+" Always use system clipboard
+set clipboard=unnamedplus
+
 if v:version >= 800
     " Always show the sign column
     set signcolumn=yes
@@ -171,4 +169,3 @@ exec printf('source %s/vim/marks.vim', config_home)
 exec printf('source %s/vim/smart-splits.vim', config_home)
 exec printf('source %s/vim/readline_keys.vim', config_home)
 exec printf('source %s/vim/sessionizer.vim', config_home)
-

@@ -63,3 +63,5 @@ export SSH_KEY_MM=~/.ssh/mm_gitlab
 # Do this before conda
 export PATH="/home/sbeer/anaconda3/bin:$PATH"
 
+# opencode
+export PATH=/home/sbeer/.opencode/bin:$PATH

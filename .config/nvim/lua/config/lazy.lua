@@ -25,14 +25,14 @@ require("lazy").setup({
         -- Directory where you store your local plugin projects. If a function is used,
         -- the plugin directory (e.g. `~/projects/plugin-name`) must be returned.
         ---@type string | fun(plugin: LazyPlugin): string
-        path = "~/neovim-plugins",
+        path = "~/dev_nvim",
         ---@type string[] plugins that match these patterns will use your local versions instead of being fetched from GitHub
         patterns = { "MartyMcFlyInTheSky" }, -- For example {"folke"}
         fallback = false, -- Fallback to git when local plugin doesn't exist
     },
     spec = {
-      -- import your plugins
-      { import = "plugins" },
+        -- import your plugins
+        { import = "plugins" },
     },
     -- Configure any other settings here. See the documentation for more details.
     -- colorscheme that will be used when installing plugins.
@@ -49,7 +49,8 @@ require("lazy").setup({
                 "gzip",
                 -- "matchit",
                 -- "matchparen",
-                -- "netrwPlugin",
+                "netrw",
+                "netrwPlugin",
                 "tarPlugin",
                 "tohtml",
                 "tutor",

@@ -10,6 +10,7 @@
 " - use complete command modifiers for abbrevs from :h command-modifiers
 " - fix: don't display global marks in old files after they have been placed
 "   to new file
+" - fix: first time setting global mark often doesn't work
 
 
 "==============================================================================

@@ -1,158 +1,138 @@
+-- nvim-treesitter main branch (nvim 0.12+)
+-- API changed completely from master branch:
+--   - setup() only accepts install_dir
+--   - parsers installed via require('nvim-treesitter').install()
+--   - highlight/fold/indent wired via FileType autocmd (builtin nvim features)
+--   - textobjects plugin has new explicit keymap API
 return {
     {
         "nvim-treesitter/nvim-treesitter",
-        dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
-        branch = 'master',
-        lazy = false, -- Does not support lazy loading
+        dependencies = {
+            {
+                "nvim-treesitter/nvim-treesitter-textobjects",
+                branch = "main",
+            },
+        },
+        branch = "main",
+        lazy = false,
         build = ":TSUpdate",
+        init = function()
+            -- Install parsers on startup (no-op if already installed)
+            local parsers = {
+                "bash", "c", "cpp", "lua", "vim", "vimdoc", "query",
+                "markdown", "markdown_inline",
+                "python", "json5",
+            }
+            require("nvim-treesitter").install(parsers)
+        end,
         config = function()
-            local configs = require("nvim-treesitter.configs")
-            configs.setup({
-                ensure_installed = {
-                    "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline",
-                    -- Language parsers for C, Lua, Markdown, Vimscript, Vimdoc are 
-                    -- installed in neovim by default
-                    -- (https://neovim.io/doc/user/treesitter.html#treesitter-parsers)
-                    "cpp", "python",
-                },
-                sync_install = false,
-                auto_install = false,
-                -- Modules:
-                highlight = {
-                    enable = true,
-                    -- Disable highlight for very large files
-                    disable = function(lang, buf)
-                        local max_filesize = 200 * 1024 -- 200 KB
-                        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-                        if ok and stats and stats.size > max_filesize then
-                            return true
-                        end
-                    end,
-                    additional_vim_regex_highlighting = false,
-                },
-                indent = {
-                    -- Indent for the '=' operator
-                    enable = true,
-                },
-                rainbow = {
-                    enable = true,
-                    max_file_lines = 3000,
-                },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = "gnn", -- set to `false` to disable one of the mappings
-                        node_incremental = "g{",
-                        node_decremental = "g}",
-                        scope_incremental = false,
-                    },
-                },
-                textobjects = {
-                    select = {
-                        enable = true,
-                        lookahead = true,
-                        keymaps = {
-                            -- You can use the capture groups defined in textobjects.scm
-                            ["a="] = { query = "@assignment.outer", desc = "Select outer part of an assignment" },
-                            ["i="] = { query = "@assignment.inner", desc = "Select inner part of an assignment" },
-                            -- This makes visual selection slower since it has to wait whether I type '=' or not
-                            -- ["l="] = { query = "@assignment.lhs", desc = "Select left hand side of an assignment" },
-                            ["r="] = { query = "@assignment.rhs", desc = "Select right hand side of an assignment" },
+            -- setup() in main branch only accepts install_dir; default is fine
+            -- require("nvim-treesitter").setup {}
 
-                            ["aa"] = { query = "@parameter.outer", desc = "Select outer part of a parameter/argument" },
-                            ["ia"] = { query = "@parameter.inner", desc = "Select inner part of a parameter/argument" },
+            -- Highlighting, folding, indentation are builtin nvim features;
+            -- enable them per-filetype via autocmd
+            vim.api.nvim_create_autocmd("FileType", {
+                callback = function()
+                    -- Highlighting
+                    local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(0))
+                    local too_large = ok and stats and stats.size > 200 * 1024
+                    if not too_large then
+                        pcall(vim.treesitter.start)
+                    end
 
-                            ["ai"] = { query = "@conditional.outer", desc = "Select outer part of a conditional" },
-                            ["ii"] = { query = "@conditional.inner", desc = "Select inner part of a conditional" },
+                    -- Folding
+                    vim.wo[0][0].foldmethod = "expr"
+                    vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                    vim.opt_local.foldlevel = 99
+                    vim.opt_local.foldlevelstart = 99
 
-                            ["al"] = { query = "@loop.outer", desc = "Select outer part of a loop" },
-                            ["il"] = { query = "@loop.inner", desc = "Select inner part of a loop" },
-
-                            ["af"] = { query = "@call.outer", desc = "Select outer part of a function call" },
-                            ["if"] = { query = "@call.inner", desc = "Select inner part of a function call" },
-
-                            ["am"] = {
-                                query = "@function.outer",
-                                desc = "Select outer part of a method/function definition",
-                            },
-                            ["im"] = {
-                                query = "@function.inner",
-                                desc = "Select inner part of a method/function definition",
-                            },
-
-                            ["ac"] = { query = "@class.outer", desc = "Select outer part of a class" },
-                            ["ic"] = { query = "@class.inner", desc = "Select inner part of a class" },
-                        },
-                    },
-                    swap = {
-                        enable = true,
-                        swap_next = {
-                            ["<leader>a"] = "@parameter.inner", -- swap parameters/argument with next
-                        },
-                        swap_previous = {
-                            ["<leader>A"] = "@parameter.inner", -- swap parameters/argument with prev
-                        },
-                    },
-                    move = {
-                        enable = true,
-                        set_jumps = true, -- whether to set jumps in the jumplist (<C-i> and <C-o>)
-                        goto_next_start = {
-                            ["]f"] = { query = "@call.outer", desc = "Next function call start" },
-                            ["]m"] = { query = "@function.outer", desc = "Next method/function def start" },
-                            -- conflicts with jumping to diff
-                            -- ["]c"] = { query = "@class.outer", desc = "Next class start" },
-                            ["]i"] = { query = "@conditional.outer", desc = "Next conditional start" },
-                            ["]l"] = { query = "@loop.outer", desc = "Next loop start" },
-                            ["]a"] = { query = "@parameter.inner", desc = "Next parameter start" },
-
-                            -- You can pass a query group to use query from `queries/<lang>/<query_group>.scm file in your runtime path.
-                            -- Below example nvim-treesitter's `locals.scm` and `folds.scm`. They also provide highlights.scm and indent.scm.
-                            ["]s"] = { query = "@scope", query_group = "locals", desc = "Next scope" },
-                            ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
-                        },
-                        goto_next_end = {
-                            ["]F"] = { query = "@call.outer", desc = "Next function call end" },
-                            ["]M"] = { query = "@function.outer", desc = "Next method/function def end" },
-                            ["]C"] = { query = "@class.outer", desc = "Next class end" },
-                            ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
-                            ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
-                            ["]A"] = { query = "@parameter.inner", desc = "Next parameter end" },
-                        },
-                        goto_previous_start = {
-                            ["[f"] = { query = "@call.outer", desc = "Prev function call start" },
-                            ["[m"] = { query = "@function.outer", desc = "Prev method/function def start" },
-                            -- conflicts with jumping to diff
-                            -- ["[c"] = { query = "@class.outer", desc = "Prev class start" },
-                            ["[i"] = { query = "@conditional.outer", desc = "Prev conditional start" },
-                            ["[l"] = { query = "@loop.outer", desc = "Prev loop start" },
-                            ["[a"] = { query = "@parameter.inner", desc = "Prev parameter start" },
-                        },
-                        goto_previous_end = {
-                            ["[F"] = { query = "@call.outer", desc = "Prev function call end" },
-                            ["[M"] = { query = "@function.outer", desc = "Prev method/function def end" },
-                            ["[C"] = { query = "@class.outer", desc = "Prev class end" },
-                            ["[I"] = { query = "@conditional.outer", desc = "Prev conditional end" },
-                            ["[L"] = { query = "@loop.outer", desc = "Prev loop end" },
-                            ["[A"] = { query = "@parameter.inner", desc = "Prev paramter end" },
-                        },
-                    },
-                }
+                    -- Indentation (experimental)
+                    vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                end,
             })
+
+            -- Incremental selection (builtin nvim feature via nvim-treesitter queries)
+            vim.keymap.set("n", "U", function()
+                vim.cmd("normal! V")
+                require("nvim-treesitter.incremental_selection").init_selection()
+            end, { desc = "TS: start incremental selection" })
+
+            -- ── textobjects: select ──────────────────────────────────────────
+            local sel = require("nvim-treesitter-textobjects.select")
+            local function map_sel(lhs, query, desc)
+                vim.keymap.set({ "x", "o" }, lhs, function()
+                    sel.select_textobject(query, "textobjects")
+                end, { desc = desc })
+            end
+
+            map_sel("a=", "@assignment.outer", "outer assignment")
+            map_sel("i=", "@assignment.inner", "inner assignment")
+            map_sel("r=", "@assignment.rhs",   "rhs of assignment")
+            map_sel("aa", "@parameter.outer",  "outer parameter")
+            map_sel("ia", "@parameter.inner",  "inner parameter")
+            map_sel("ai", "@conditional.outer","outer conditional")
+            map_sel("ii", "@conditional.inner","inner conditional")
+            map_sel("al", "@loop.outer",        "outer loop")
+            map_sel("il", "@loop.inner",        "inner loop")
+            map_sel("af", "@call.outer",        "outer function call")
+            map_sel("if", "@call.inner",        "inner function call")
+            map_sel("am", "@function.outer",    "outer method/fn def")
+            map_sel("im", "@function.inner",    "inner method/fn def")
+            map_sel("ac", "@class.outer",       "outer class")
+            map_sel("ic", "@class.inner",       "inner class")
+
+            -- ── textobjects: swap ────────────────────────────────────────────
+            local swap = require("nvim-treesitter-textobjects.swap")
+            vim.keymap.set("n", "<C-A-l>", function()
+                swap.swap_next("@parameter.inner")
+            end, { desc = "TS: swap param with next" })
+            vim.keymap.set("n", "<C-A-h>", function()
+                swap.swap_previous("@parameter.inner")
+            end, { desc = "TS: swap param with prev" })
+
+            -- ── textobjects: move ────────────────────────────────────────────
+            require("nvim-treesitter-textobjects").setup { move = { set_jumps = true } }
+            local move = require("nvim-treesitter-textobjects.move")
+            local function map_move(lhs, fn, query, desc)
+                vim.keymap.set({ "n", "x", "o" }, lhs, function()
+                    move[fn](query, "textobjects")
+                end, { desc = desc })
+            end
+
+            -- next start
+            map_move("]f", "goto_next_start", "@call.outer",        "Next fn call start")
+            map_move("]m", "goto_next_start", "@function.outer",    "Next method start")
+            map_move("]c", "goto_next_start", "@class.outer",       "Next class start")
+            map_move("]i", "goto_next_start", "@conditional.outer", "Next conditional start")
+            map_move("]l", "goto_next_start", "@loop.outer",        "Next loop start")
+            -- next end
+            map_move("]F", "goto_next_end",   "@call.outer",        "Next fn call end")
+            map_move("]M", "goto_next_end",   "@function.outer",    "Next method end")
+            map_move("]C", "goto_next_end",   "@class.outer",       "Next class end")
+            map_move("]I", "goto_next_end",   "@conditional.outer", "Next conditional end")
+            map_move("]L", "goto_next_end",   "@loop.outer",        "Next loop end")
+            map_move("]A", "goto_next_end",   "@parameter.inner",   "Next param end")
+            -- prev start
+            map_move("[f", "goto_previous_start", "@call.outer",        "Prev fn call start")
+            map_move("[m", "goto_previous_start", "@function.outer",    "Prev method start")
+            map_move("[c", "goto_previous_start", "@class.outer",       "Prev class start")
+            map_move("[i", "goto_previous_start", "@conditional.outer", "Prev conditional start")
+            map_move("[l", "goto_previous_start", "@loop.outer",        "Prev loop start")
+            -- prev end
+            map_move("[F", "goto_previous_end", "@call.outer",        "Prev fn call end")
+            map_move("[M", "goto_previous_end", "@function.outer",    "Prev method end")
+            map_move("[C", "goto_previous_end", "@class.outer",       "Prev class end")
+            map_move("[I", "goto_previous_end", "@conditional.outer", "Prev conditional end")
+            map_move("[L", "goto_previous_end", "@loop.outer",        "Prev loop end")
+            map_move("[A", "goto_previous_end", "@parameter.inner",   "Prev param end")
+
+            -- scope / fold jumps (use locals/folds query groups)
+            vim.keymap.set({ "n", "x", "o" }, "]s", function()
+                move.goto_next_start("@local.scope", "locals")
+            end, { desc = "Next scope" })
+            vim.keymap.set({ "n", "x", "o" }, "]z", function()
+                move.goto_next_start("@fold", "folds")
+            end, { desc = "Next fold" })
         end,
     },
-    {
-        "nvim-treesitter/nvim-treesitter-context",
-        dependencies = { "nvim-treesitter/nvim-treesitter-context" },
-        event = "BufEnter",
-        opts = {
-            multiline_threshold = 20,
-        },
-        config = function(_, opts)
-            require('treesitter-context').setup(opts)
-
-            vim.keymap.set("n", "U", function()
-                require("treesitter-context").go_to_context(vim.v.count1)
-            end, { silent = true })
-        end
-    }
 }

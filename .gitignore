@@ -1,2 +1,15 @@
 .netrwhist
 .vscode
+.nvim
+TODO.md
+.cache/
+compile_commands.json
+.gdbinit
+.runrun/
+.opencode/
+.opensrc
+.runrun/
+SPEC*
+.rgignore
+HANDOFF*
+.puzzle-pieces

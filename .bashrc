@@ -44,14 +44,17 @@ function vim() {
 }
 export -f vim
 
-export VISUAL="nvimsesh"
+export VISUAL="nvr_worktree"
 export EDITOR="$VISUAL"
 export SYSTEMD_EDITOR="$VISUAL"
-export GIT_EDITOR="$VISUAL"
+export GIT_EDITOR="nvr_worktree --remote-wait-silent"
 
 # -----------------------------------------------------------------------------
 # History
 # -----------------------------------------------------------------------------
+#
+# TODO:
+# - Don't propagate history to other shell instances, only load it on request
 
 # Enable multiline command preservation
 # https://stackoverflow.com/questions/38817144/easy-way-to-reopen-a-command-previously-written-with-ctrlx-ctrle-in-bash
@@ -81,6 +84,17 @@ __append_reload_history() {
     history -n # load new entries from histfile
 }
 precmd_functions+=(__append_reload_history)
+
+__set_repo_root() {
+    local root
+    root=$(git rev-parse --show-toplevel 2>/dev/null) || root=
+    if [[ -n "$root" ]]; then
+        export r="$root"
+    else
+        unset r
+    fi
+}
+precmd_functions+=(__set_repo_root)
 
 
 # -----------------------------------------------------------------------------
@@ -115,7 +129,7 @@ fi
 
 # Add git branch if it's present to PS1
 __parse_git_branch() {
-    if [[ "$(git rev-parse --show-toplevel)" == "$HOME" ]]; then
+    if [[ "$(git rev-parse --show-toplevel &>/dev/null)" == "$HOME" ]]; then
         local icon='' # is managed by dotfiles
     else
         local icon=''
@@ -166,8 +180,8 @@ __ps_cwd1="$(__fg_rgb 255 255 255)$(__bg_rgb ${__c_dark_slate_blue[@]}) \w ${__c
 __ps_cwd2="$(__fg_rgb ${__c_light_yellow_green[@]})$(__bg_rgb ${__c_dark_slate_blue[@]}) \w ${__crst}"
 __ps_arrwxx="$(__fg_rgb ${__c_dark_slate_blue[@]})${__crst}"
 __ps_branch="$(__fg_rgb ${__c_gray[@]})%s ${__crst}"
-__ps_prompt1="$(__fg_rgb ${__c_light_yellow_green[@]})  ${__crst}"
-__ps_prompt2="$(__fg_rgb ${__c_error[@]})  ${__crst}"
+__ps_prompt1="$(__fg_rgb ${__c_light_yellow_green[@]}) $ ${__crst}"
+__ps_prompt2="$(__fg_rgb ${__c_error[@]}) $ ${__crst}"
 
 __evaluate_ps1() {
     local exitcode=$?
@@ -228,6 +242,8 @@ if ! shopt -oq posix; then
 	fi
 fi
 
+# butterfingers integration
+eval "$(butterfingers init bash)"
 
 # zoxide integration
 eval "$(zoxide init bash)"
@@ -258,16 +274,16 @@ eval "$(fzf --bash)"
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ -f "$MY_HOME/.config/bash/bash_aliases" ]; then
-	. "$MY_HOME/.config/bash/bash_aliases"
+if [ -f "$MY_HOME/.config/bash/bash_aliases.bash" ]; then
+	. "$MY_HOME/.config/bash/bash_aliases.bash"
 fi
 
-if [ -f "$MY_HOME/.config/bash/bash_functions" ]; then
-	. "$MY_HOME/.config/bash/bash_functions"
+if [ -f "$MY_HOME/.config/bash/bash_functions.bash" ]; then
+	. "$MY_HOME/.config/bash/bash_functions.bash"
 fi
 
-if [ -f "$MY_HOME/.config/bash/bash_completions" ]; then
-	. "$MY_HOME/.config/bash/bash_completions"
+if [ -f "$MY_HOME/.config/bash/bash_completions.bash" ]; then
+	. "$MY_HOME/.config/bash/bash_completions.bash"
 fi
 
 # Conda init for current shell depending on if we're in remote or local context
@@ -301,6 +317,7 @@ else
 	ssh-add ~/.ssh/private_github
 	ssh-add ~/.ssh/mm_gitlab
 	ssh-add ~/.ssh/gitlab_private
+    ssh-add ~/.ssh/beerberry
 
 	export PATH="$PATH:/opt/nvim-linux64/bin"
 
@@ -314,3 +331,25 @@ else
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 fi
+
+# nomad-config envrc
+if [ -f "/home/sbeer/dev/nomad-config/.envrc" ]; then
+  . "/home/sbeer/dev/nomad-config/.envrc"
+fi
+# nomad-config envrc
+
+# Pi
+export PATH="/home/sbeer/.local/share/pi-node/node-v22.23.1-linux-x64/bin:$PATH"
+
+# Change directory to the repository selected in LazyGit after exit.
+unalias lg 2>/dev/null || true
+lg() {
+    export LAZYGIT_NEW_DIR_FILE="$HOME/.lazygit/newdir"
+
+    lazygit "$@"
+
+    if [ -f "$LAZYGIT_NEW_DIR_FILE" ]; then
+        cd "$(cat "$LAZYGIT_NEW_DIR_FILE")" || return
+        rm -f "$LAZYGIT_NEW_DIR_FILE" > /dev/null
+    fi
+}

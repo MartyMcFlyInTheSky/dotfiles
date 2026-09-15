@@ -17,12 +17,12 @@ map ]] j0[[%/{<CR>
 map [] k$][%?}<CR>
 
 " Move current line or selected block of lines up
-vnoremap <A-k> mz:m '<-2<CR>gv=gv`z
-nnoremap <A-k> mz:m .-2<CR>`z
+vnoremap <C-A-k> mz:m '<-2<CR>gv=gv`z
+nnoremap <C-A-k> mz:m .-2<CR>`z
 
 " Move current line or selected block of lines down
-vnoremap <A-j> mz:m '>+1<CR>gv=gv`z
-nnoremap <A-j> mz:m .+1<CR>`z
+vnoremap <C-A-j> mz:m '>+1<CR>gv=gv`z
+nnoremap <C-A-j> mz:m .+1<CR>`z
 
 " Copy current selection up or down
 nnoremap <A-S-K> :t .-1<CR>==
@@ -136,9 +136,10 @@ nnoremap Q <nop>
 " Sessionizer
 nnoremap <C-s> <Cmd>SaveSessionAndQuit<CR>
 
-" Move back and forth between args
-nnoremap <C-f> <CMD>next<CR>
-nnoremap <C-b> <CMD>prev<CR>
+" Move back and forth between tabs
+" DEACTIVATED because we want to do this in wezterm with the same keys
+"nnoremap <C-f> gt
+"nnoremap <C-b> gT
 
 " Toggle word wrap
 nnoremap <A-z> <CMD>set wrap!<CR>
@@ -148,3 +149,23 @@ nnoremap <leader>w <CMD>w<CR>
 
 " Source current
 nnoremap <leader>x <CMD>so %<CR>
+
+" Open current buffer in new tab
+nnoremap <C-w><C-t> <CMD>tab split<CR>
+nnoremap <leader>t <CMD>call <SID>lift_tab()<CR>
+
+" Lift current buffer to fullscreen tab (preserves cursor position)
+function! <SID>lift_tab()
+  " Save cursor position before switching
+  let cursor_pos = getcurpos()
+  " Create new tab with current file
+  execute 'tabnew %'
+  " Restore cursor position in new tab
+  call setpos('.', cursor_pos)
+endfunction
+
+" Center cursor horizontally
+nnoremap zl zszH
+
+" Copy current view to new tab
+nnoremap U <CMD>tab split<CR>

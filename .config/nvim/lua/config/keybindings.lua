@@ -82,3 +82,31 @@ vim.keymap.set('n' , '<leader>e', function()
     end
 end, { desc = "Open .vscode/tasks.json if present" })
 
+-- Keybindings for <C-.> moved to open-on-remote.nvim plugin
+
+-- Duplicate current file within the same directory (auto-numbered suffix)
+vim.keymap.set('n', '<leader>dc', function()
+  local src = vim.fn.expand('%:p')
+  local dir = vim.fn.expand('%:p:h')
+  local stem = vim.fn.expand('%:t:r')
+  local ext = vim.fn.expand('%:e')
+  local ext_part = ext ~= '' and ('.' .. ext) or ''
+
+  local base, digits = stem:match('^(.-)(%d+)$')
+  local n
+  if base then
+    n = tonumber(digits) + 1
+  else
+    base = stem
+    n = 2
+  end
+
+  local dest
+  repeat
+    dest = dir .. '/' .. base .. n .. ext_part
+    n = n + 1
+  until vim.fn.filereadable(dest) == 0
+  vim.fn.system({'cp', src, dest})
+  vim.cmd.edit(dest)
+end, { noremap = true, silent = true, desc = "Duplicate file in same dir" })
+

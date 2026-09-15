@@ -1,15 +1,15 @@
-local wezterm = require 'wezterm'
+local wezterm = require('wezterm')
+local path = require('path')
 local act = wezterm.action
 local config = {}
 local io = require('io')
 local os = require('os')
 
-local mux = wezterm.mux
-
-local current_domain = mux.get_domain()
+local DOMAINS_JSON_FILE = "/home/sbeer/.local/state/rs/statusfile.lock"
 
 -- if current_domain then
 --     wezterm.log_info("WezTerm is running in a mux domain: " .. current_domain:name())
+--
 -- else
 --     wezterm.log_info("WezTerm is not running in a mux domain.")
 -- end
@@ -55,7 +55,56 @@ local current_domain = mux.get_domain()
 -- Populate ssh_domains from files found in adjacent folder
 --
 -- config.ssh_domains = {}
-config.ssh_domains = wezterm.default_ssh_domains()
+-- config.ssh_domains = wezterm.default_ssh_domains()
+--
+-- Load configuration from json file (rs lockfile)
+
+---@class SSHDomain
+---@field name string
+---@field remote_address string
+---@field username string
+---@field remote_wezterm_path string
+
+---@param filepath string
+---@return nil|SSHDomain
+local function load_domains_from_json(filepath)
+    local file = io.open(filepath, "r")
+    if not file then
+        wezterm.log_info("Failed to open file: " .. filepath)
+        return nil
+    end
+
+    local data = file:read("*a")
+    file:close()
+
+    local json_domains = wezterm.json_parse(data)
+    if not json_domains then
+        wezterm.log_info("Failed to parse JSON data from file: " .. filepath)
+    end
+
+    -- Bring it to the right form (https://wezterm.org/config/lua/SshDomain.html)
+    local domains = {}
+    for _, jd in ipairs(json_domains) do
+        local d = {
+            name = jd.name,
+            remote_address = jd.remote_address,
+            username = jd.username,
+            remote_wezterm_path = path:new(jd.remote_path):join('.local'):join('bin'):join('wezterm'):to_string(),
+        }
+        table.insert(domains, d)
+    end
+    return domains
+end
+
+wezterm.log_info("Loading remote host configuration from = ", DOMAINS_JSON_FILE)
+
+local domains_cfg = load_domains_from_json(DOMAINS_JSON_FILE)
+if domains_cfg ~= nil then
+    config.ssh_domains = domains_cfg
+    wezterm.log_info("Loaded the following ssh domains: \n", config.ssh_domains)
+end
+
+-- wezterm.log_info("domains = ", domains)
 
 -- wezterm.log_info("Loading domain files..:")
 -- local other_file = require("ssh_domains")
@@ -143,12 +192,15 @@ local function focus_pane_conditional(key, direction)
     }
 end
 
-local function send_string_if_vim(string)
+
+---@param vimstr string
+---@param otherstr string | nil
+local function send_string_if_vim_else(vimstr, otherstr)
     return wezterm.action_callback(function(win, pane)
-        wezterm.log_info("Checking if current pane holds vim..")
         if is_vim(pane) then
-            wezterm.log_info("current pane holds vim, sending keys..")
-            win:perform_action(wezterm.action.SendString(string), pane)
+            win:perform_action(wezterm.action.SendString(vimstr), pane)
+        elseif otherstr or string.len(otherstr) == 0 then
+            win:perform_action(wezterm.action.SendString(otherstr), pane)
         end
     end)
 end
@@ -210,6 +262,9 @@ function SendFixterm(mods, key)
 end
 
 
+-- NOTE: This doesn't really work that well since we don't use the environment
+-- of the working directory (e.g. activating an python virtualenv will still have pyright
+-- complain that the definitions can't be found)
 wezterm.on('toggle-nvimsesh', function(window, pane)
     if is_vim(pane) then
         wezterm.log_info("current pane holds vim, sending keys..")
@@ -273,7 +328,7 @@ wezterm.on('toggle-lazygit', function(window, pane)
         local cwd_uri = pane:get_current_working_dir()
         window:perform_action(
             act.SpawnCommandInNewTab {
-                args = { 'bash', '-lc', 'lazygit' },
+                args = { 'bash', '-lc', '/home/linuxbrew/.linuxbrew/bin/lazygit' },
                 set_environment_variables = {
                     PWD = cwd_uri.file_path,
                 },
@@ -283,19 +338,104 @@ wezterm.on('toggle-lazygit', function(window, pane)
     end
 end)
 
+local function is_bash(pane)
+    local proc = pane:get_foreground_process_name() or ""
+    return proc:match("bash$") ~= nil
+end
+
+--==============================================================================
+--  TOGGLE TASK TABS                                                          --
+--==============================================================================
+
+local last_tab_by_window = {}
+
+local function basename(path)
+  return path:match("([^/]+)$") or path
+end
+
+local function tab_has_process(tab, proc)
+  for _, pane in ipairs(tab:panes()) do
+    local fg = pane:get_foreground_process_name()
+    if fg and basename(fg) == proc then
+      return true
+    end
+  end
+  return false
+end
+
+local function activate_or_spawn_global(window, pane, target_proc, spawn_cmd)
+  local mux_window = window:mux_window()
+  local tabs = mux_window:tabs()
+  local current_tab = mux_window:active_tab()
+  local current_index = nil
+  local target_index = nil
+  for i, tab in ipairs(tabs) do
+    if tab:tab_id() == current_tab:tab_id() then
+      current_index = i - 1
+    end
+    if tab_has_process(tab, target_proc) then
+      target_index = i - 1
+    end
+  end
+  local window_id = window:window_id()
+  local last_index = last_tab_by_window[window_id]
+  if target_index ~= nil then
+    if current_index == target_index then
+      if last_index ~= nil and last_index ~= current_index and tabs[last_index + 1] ~= nil then
+        window:perform_action(act.ActivateTab(last_index), pane)
+      end
+    else
+      last_tab_by_window[window_id] = current_index
+      window:perform_action(act.ActivateTab(target_index), pane)
+    end
+    return
+  end
+  -- Not found: remember current tab, then spawn new tab in current cwd
+  last_tab_by_window[window_id] = current_index
+  local cwd_uri = pane:get_current_working_dir()
+    -- wezterm.log_info("cwd of current pane is " .. (cwd_uri.file_path or "nil"))
+  window:perform_action(
+    act.SpawnCommandInNewTab({
+      cwd = cwd_uri.file_path,
+      args = spawn_cmd,
+    }),
+    pane
+  )
+end
+
 config.keys = {
     {
-        key = 'b', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(-1)
+      key = "o",
+      mods = "SUPER|CTRL",
+      action = wezterm.action_callback(function(window, pane)
+        activate_or_spawn_global(window, pane, "opencode", { "opencode", "--port" })
+      end),
     },
     {
-        key = 'f', mods = 'CTRL|SHIFT', action = act.ActivateTabRelative(1)
+      key = "l",
+      mods = "SUPER|CTRL",
+      action = wezterm.action_callback(function(window, pane)
+        activate_or_spawn_global(window, pane, "lazygit", {
+          "/home/linuxbrew/.linuxbrew/bin/lazygit",
+        })
+      end),
     },
+    -- NOTE: No Ctrl-f/b as this clashes with bash bindings
+    -- NOTE: Also no Ctrl-Shift-f/b as this clashes with wezterm search
+    -- {
+    --     key = 'b', mods = 'CTRL|', action = act.ActivateTabRelative(-1)
+    -- },
+    -- -- NOTE: This clashes with search by default
+    -- {
+    --     key = 'f', mods = 'CTRL', action = act.ActivateTabRelative(1)
+    -- },
+    -- Doesn't work since we're using ALT for debugging
     {
-        key = 'l', mods = 'ALT', action = wezterm.action.EmitEvent('toggle-lazygit')
+        key = 'l', mods = 'ALT|SHIFT', action = wezterm.action.EmitEvent('toggle-lazygit')
     },
-    {
-        key = 's', mods = 'CTRL', action = wezterm.action.EmitEvent('toggle-nvimsesh')
-    },
+    -- {
+    --     key = 's', mods = 'CTRL', action = wezterm.action.EmitEvent('toggle-nvimsesh')
+    -- },
     {
         key = 's', mods = 'CTRL|SHIFT', action = wezterm.action.EmitEvent('toggle-nvimsesh-last-out')
     },
@@ -304,14 +444,6 @@ config.keys = {
         key = "Enter",
         mods = "ALT",
         action = wezterm.action.DisableDefaultAssignment,
-    },
-    {
-        -- Override CTRL-Shift-L with a no-op to disable it
-        key = "VoidSymbol",
-        action = wezterm.action_callback(function(window, pane)
-        mods = "",
-            window:perform_action(wezterm.action.SendString("\x1b[1;7\x00"), pane)
-        end),
     },
     -- Ctrl+s / Ctrl+q (XON/XOFF) are deactivated in bash
     -- {
@@ -342,16 +474,35 @@ config.keys = {
             end
         end)
     },
+    -- Bash scrolling
     {
         key = 'u',
         mods = 'CTRL|SHIFT',
-        action = act.ScrollToPrompt(-1)
+        action = wezterm.action_callback(function (_, pane)
+            if is_bash(pane) then
+                return act.ScrollToPrompt(-1)
+            else
+                return act.SendKey({ key = "u", mods ="CTRL|SHIFT" })
+            end
+        end)
     },
     {
         key = 'd',
         mods = 'CTRL|SHIFT',
-        action = act.ScrollToPrompt(1)
+        action = wezterm.action_callback(function (_, pane)
+            if is_bash(pane) then
+                return act.ScrollToPrompt(-1)
+            else
+                return act.SendKey({key = "d", mods = "CTRL|SHIFT" })
+            end
+        end)
     },
+    -- -- Direct open
+    -- {
+    --     key = 'o',
+    --     mods = 'ALT',
+    --     action = act.SpawnCommandInNewWindow{ label = "Spawn opencode in new window", args = { "opencode" } }
+    -- },
     -- Prompt for a name to use for a new workspace and switch to it.
     -- {
     --     key = 'W',
@@ -388,32 +539,48 @@ config.keys = {
 --        mods = 'CTRL',
 --        action = wezterm.action.ActivateTabRelative(1)
 --    },
---    {
---        key = 'o',
---        mods = 'CTRL|SHIFT',
---        action = wezterm.action.ShowDebugOverlay
---    },
+   {
+       key = 'o',
+       mods = 'CTRL|SHIFT',
+       action = wezterm.action.ShowDebugOverlay
+   },
     -- Spawn mux domain
---    {
---        key = 'h',
---        mods = 'CTRL|SHIFT',
---        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
---    },
---    {
---        key = 'l',
---        mods = 'CTRL|SHIFT',
---        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
---    },
+   -- {
+   --     key = 'h',
+   --     mods = 'CTRL|SHIFT',
+   --     action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+   -- },
+   {
+       key = 'i',
+       mods = 'CTRL|SHIFT',
+       action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+   },
     -- Split panes
+    -- {
+    --     key = 'h',
+    --     mods = 'CTRL|SHIFT',
+    --     action = send_string_if_vim_else('\x1b[1;6h')
+    -- },
+    -- {
+    --     key = 'l',
+    --     mods = 'CTRL|SHIFT',
+    --     action = send_string_if_vim_else('\x1b[1;6l')
+    -- },
     {
         key = 'h',
         mods = 'CTRL|SHIFT',
-        action = send_string_if_vim('\x1b[1;6h')
+        action = wezterm.action.SplitPane{
+            direction = 'Left',
+            size = { Percent = 50 },
+        }
     },
     {
         key = 'l',
         mods = 'CTRL|SHIFT',
-        action = send_string_if_vim('\x1b[1;6l')
+        action = wezterm.action.SplitPane{
+            direction = 'Right',
+            size = { Percent = 50 },
+        }
     },
     {
         key = 'k',
@@ -427,7 +594,6 @@ config.keys = {
         key = 'j',
         mods = 'CTRL|SHIFT',
         action = wezterm.action_callback(function(win, pane)
-            wezterm.log_info("Hello from ctrl shift j")
             win:perform_action({
                 SplitPane = {
                     direction = 'Down',
@@ -437,15 +603,25 @@ config.keys = {
         end),
     },
     -- Focus panes
+    -- {
+    --     key = 'h',
+    --     mods = 'CTRL',
+    --     action = send_string_if_vim_else('\x08')
+    -- },
+    -- {
+    --     key = 'l',
+    --     mods = 'CTRL',
+    --     action = send_string_if_vim_else('\x0c')
+    -- },
     {
         key = 'h',
         mods = 'CTRL',
-        action = send_string_if_vim('\x08')
+        action = wezterm.action.ActivatePaneDirection('Left')
     },
     {
         key = 'l',
         mods = 'CTRL',
-        action = send_string_if_vim('\x0c')
+        action = wezterm.action.ActivatePaneDirection('Right')
     },
     {
         key = 'k',
@@ -464,18 +640,35 @@ config.keys = {
         action = act.SendKey{ key='_', mods='CTRL' }
     },
     -- Forward copy to copy current readline (needs bash integration)
-   {
-       key = "c",
-       mods = "CTRL|SHIFT",
-       action = wezterm.action_callback(function(win, pane)
-           local has_selection = win:get_selection_text_for_pane(pane) ~= ""
-           if has_selection then
-               win:perform_action(act.CopyTo("ClipboardAndPrimarySelection"), pane)
-           else
-               win:perform_action(SendFixterm("CTRL|SHIFT", "c"), pane)
-           end
-       end)
-   }
+    {
+        key = "c",
+        mods = "CTRL|SHIFT",
+        action = wezterm.action_callback(function(window, pane)
+            local has_selection = window:get_selection_text_for_pane(pane) ~= ""
+            if has_selection then
+                window:perform_action(act.CopyTo("ClipboardAndPrimarySelection"), pane)
+            else
+                local cursor = pane:get_cursor_position()
+                -- Adapted from: https://wezterm.org/config/lua/pane/get_semantic_zone_at.html
+                -- using x-1 here because the cursor may be one cell outside the zone
+                local zone = pane:get_semantic_zone_at(cursor.x - 1, cursor.y)
+                if zone then
+                    local text = pane:get_text_from_semantic_zone(zone)
+                    window:copy_to_clipboard(text)
+                    window:toast_notification('WezTerm', 'Copied ' .. text .. ' to clipboard!', nil, 3000)
+                end
+            end
+        end)
+    },
+}
+
+config.mouse_bindings = {
+    -- Copy semantic zone (e.g. last command output)
+    {
+        event = { Down = { streak = 3, button = "Left" }},
+        mods = 'NONE',
+        action = wezterm.action.SelectTextAtMouseCursor('SemanticZone'),
+    }
 }
 
 -- Font settings
@@ -523,8 +716,15 @@ config.colors = {
         "#29b8db", -- bright cyan
         "#e5e5e5", -- bright white
     },
+    input_selector_label_bg = { AnsiColor = 'Black' }, -- (*Since: Nightly Builds Only*)
+    input_selector_label_fg = { AnsiColor = 'Blue' }, -- (*Since: Nightly Builds Only*)
+
+    launcher_label_bg = { AnsiColor = 'Black' }, -- (*Since: Nightly Builds Only*)
+    launcher_label_fg = { Color = '#ffffff' }, -- (*Since: Nightly Builds Only*)
 }
 
 config.enable_tab_bar = false
+
+config.window_padding = { bottom = 0 }
 
 return config

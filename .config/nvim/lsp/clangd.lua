@@ -43,7 +43,7 @@ end
 
 return {
     -- global clangd instance is configured in ~/.config/clangd/config.yaml
-    cmd = {'clangd', '-j=2', '--clang-tidy', '--log=verbose' },
+    cmd = {'clangd', '-j', '2', '--clang-tidy', '--log=verbose' },
     -- Root markers, .git folder is always a fallback
     root_markers = { '.vscode' },
     -- root_markers = { {
@@ -70,81 +70,22 @@ return {
         end
     end,
     on_attach = function(client, bufnr)
-        -- Formatting
-        if client.supports_method("textDocument/formatting") then
-            vim.keymap.set('n', 'gf', function()
-                vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 1000 })
-            end,
-            { noremap = true, silent = true, buffer = bufnr })
+        local function map(lhs, rhs, desc)
+            vim.keymap.set("n", lhs, rhs, { buffer = bufnr, silent = true, noremap = true, desc = desc })
         end
-        -- Add 'go to definition'
-        if client.supports_method("textDocument/definition") then
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, { noremap = true, silent = true, buffer = bufnr })
-        end
-        -- Add 'go to declaration'
-        if client.supports_method("textDocument/declaration") then
-            vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { noremap = true, silent = true, buffer = bufnr })
-        end
-        -- Add 'switch header/source'
-        if client.supports_method("textDocument/switchSourceHeader") then
-            vim.keymap.set("n", "gh", function()
+
+        -- Switch header/source
+        if client:supports_method("textDocument/switchSourceHeader") then
+            map("gh", function()
                 switch_source_header(bufnr, client)
-            end,
-            { noremap = true, silent = true, buffer = bufnr })
+            end, "LSP: Switch header/source")
         end
-        -- Display symbol info
-        if client.supports_method('textDocument/symbolInfo') then
-            vim.keymap.set("n", "gs", function()
+
+        -- Symbol info
+        if client:supports_method("textDocument/symbolInfo") then
+            map("gs", function()
                 symbol_info(bufnr, client)
-            end,
-            { noremap = true, silent = true, buffer = bufnr })
+            end, "LSP: Symbol info")
         end
-        -- Document symbols
-        local ok, telescope_builtin = pcall(require, "telescope.builtin")
-        if ok then
-            vim.keymap.set("n", "gO", telescope_builtin.lsp_document_symbols, { noremap = true, silent = true, buffer = bufnr })
-        else
-            vim.print("was not ok")
-        end
-    -- Jump to declaration
-    -- List all the implementations for the symbol under the cursor
-
-        -- Switch header/source  
-        -- Goto declaration
-        -- 
-
-
-        -- callback = function(args)
-        --     local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
-        --     if client:supports_method('textDocument/implementation') then
-        --         -- Create a keymap for vim.lsp.buf.implementation ...
-        --     end
-        --     -- Enable auto-completion. Note: Use CTRL-Y to select an item. |complete_CTRL-Y|
-        --     if client:supports_method('textDocument/completion') then
-        --         -- Optional: trigger autocompletion on EVERY keypress. May be slow!
-        --         -- local chars = {}; for i = 32, 126 do table.insert(chars, string.char(i)) end
-        --         -- client.server_capabilities.completionProvider.triggerCharacters = chars
-        --         vim.lsp.completion.enable(true, client.id, args.buf, {autotrigger = true})
-        --     end
-        --     -- Auto-format ("lint") on save.
-        --     -- Usually not needed if server supports "textDocument/willSaveWaitUntil".
-        --     if not client:supports_method('textDocument/willSaveWaitUntil')
-        --         and client:supports_method('textDocument/formatting') then
-        --         vim.api.nvim_create_autocmd('BufWritePre', {
-        --             group = vim.api.nvim_create_augroup('my.lsp', {clear=false}),
-        --             buffer = args.buf,
-        --             callback = function()
-        --                 vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 })
-        --             end,
-        --         })
-        --     end
-        -- end,
-        vim.api.nvim_buf_create_user_command(bufnr, 'LspClangdSwitchSourceHeader', function()
-            switch_source_header(bufnr, client)
-        end, { desc = 'Switch between source/header' })
-        --
-        -- vim.api.nvim_buf_create_user_command(bufnr, 'LspClangdShowSymbolInfo', function()
-        --     symbol_info(bufnr, client)
-        -- end, { desc = 'Show symbol info' })
     end,
 }

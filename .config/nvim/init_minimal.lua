@@ -19,7 +19,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     defaults = {
         -- lazy load if not otherwise stated
-        lazy = true, 
+        lazy = true,
     },
     dev = {
         -- Directory where you store your local plugin projects. If a function is used,
