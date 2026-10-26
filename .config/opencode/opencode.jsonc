@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "package": "/home/sbeer/.config/opencode-sandbox/shared/session-identity",
+      "package": "./plugin/session-identity",
       "options": {
         "prompt": true
       }
