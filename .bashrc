@@ -49,6 +49,12 @@ export EDITOR="$VISUAL"
 export SYSTEMD_EDITOR="$VISUAL"
 export GIT_EDITOR="nvr_worktree --remote-wait-silent"
 
+# Display elapsed seconds until interrupted with Ctrl-C.
+timer() {
+    local start=$(date +%s)
+    watch -n 1 -t "printf '%s seconds elapsed\\n' \"\$((\$(date +%s) - $start))\""
+}
+
 # -----------------------------------------------------------------------------
 # History
 # -----------------------------------------------------------------------------
@@ -269,6 +275,13 @@ eval "$(fzf --bash)"
 # wezterm integration
 # (enabled by default by /etc/profile.d/wezterm.sh)
 
+# docker integration
+# eval "$(docker completion bash)"
+
+# sbx integration
+export PATH="$HOME/.docker/sbx/bin:$PATH"
+# eval "$(sbx completion bash)"
+
 
 # Alias definitions.
 # ~/.bash_aliases, instead of adding them here directly.
@@ -315,9 +328,10 @@ else
     setxkbmap -option caps:none
 
 	ssh-add ~/.ssh/private_github
-	ssh-add ~/.ssh/mm_gitlab
 	ssh-add ~/.ssh/gitlab_private
     ssh-add ~/.ssh/beerberry
+	ssh-add ~/.ssh/mm_gitlab
+    ssh-add ~/.ssh/mm_hosts
 
 	export PATH="$PATH:/opt/nvim-linux64/bin"
 
