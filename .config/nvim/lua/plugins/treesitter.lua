@@ -20,8 +20,8 @@ return {
             -- Install parsers on startup (no-op if already installed)
             local parsers = {
                 "bash", "c", "cpp", "lua", "vim", "vimdoc", "query",
-                "markdown", "markdown_inline",
-                "python", "json5",
+                "markdown", "markdown_inline", "yaml",
+                "python", "json5", "wgsl",
             }
             require("nvim-treesitter").install(parsers)
         end,

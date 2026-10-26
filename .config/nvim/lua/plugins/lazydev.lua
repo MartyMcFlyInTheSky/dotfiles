@@ -8,6 +8,10 @@ return {
                 -- See the configuration section for more details
                 -- Load luvit types when the `vim.uv` word is found
                 { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+                {
+                    path = vim.fn.expand("~/dev/speech-review.nvim-worktrees/feat-first-draft"),
+                    words = { "speech_review" },
+                },
                 "nvim-dap-ui" -- recommended by nvim-dap-ui
             },
             -- -- disable when a .luarc.json file is found (don't override jsonc stored lsp settings)

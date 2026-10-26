@@ -13,3 +13,5 @@ SPEC*
 .rgignore
 HANDOFF*
 .puzzle-pieces
+tmp
+review*
